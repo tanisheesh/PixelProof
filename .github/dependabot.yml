@@ -1,0 +1,50 @@
+# ╔══════════════════════════════════════════════════════════════════════╗
+# ║  TANISH'S SETUP TOOLKIT · tanisheesh.in                              ║
+# ║  Dependabot config. Goes to: <repo>/.github/dependabot.yml           ║
+# ╚══════════════════════════════════════════════════════════════════════╝
+
+version: 2
+
+updates:
+  # GitHub Actions used in .github/workflows
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule: { interval: "weekly", day: "monday", time: "06:00", timezone: "Asia/Kolkata" }
+    commit-message: { prefix: "👷" }
+    groups:
+      actions:
+        patterns: ["*"]
+
+  # Node / Next.js Frontend: frontend/package.json
+  - package-ecosystem: "npm"
+    directory: "/frontend"
+    schedule: { interval: "weekly", day: "monday", time: "06:00", timezone: "Asia/Kolkata" }
+    open-pull-requests-limit: 10
+    commit-message: { prefix: "👆" }
+    groups:
+      minor-and-patch:
+        update-types: ["minor", "patch"]
+
+  # Python FastAPI DIP Backend: backend/requirements.txt
+  - package-ecosystem: "pip"
+    directory: "/backend"
+    schedule: { interval: "weekly", day: "monday", time: "06:00", timezone: "Asia/Kolkata" }
+    open-pull-requests-limit: 10
+    commit-message: { prefix: "👆" }
+    groups:
+      minor-and-patch:
+        update-types: ["minor", "patch"]
+
+  # Docker: base image in backend/Dockerfile
+  - package-ecosystem: "docker"
+    directory: "/backend"
+    schedule: { interval: "weekly", day: "monday", time: "06:00", timezone: "Asia/Kolkata" }
+    commit-message: { prefix: "👆" }
+
+# ──────────────────────────────────────────────────────────────────────────
+#  Tanish Poddar
+#  Website   https://tanisheesh.in
+#  LinkedIn  https://linkedin.com/in/tanisheesh
+#  GitHub    https://github.com/tanisheesh
+#  Email     hi@tanisheesh.in
+# ──────────────────────────────────────────────────────────────────────────
