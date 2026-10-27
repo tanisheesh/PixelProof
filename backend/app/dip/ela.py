@@ -123,7 +123,7 @@ def run_ela_layer(
     ]
 
     dip_math = DipMathInfo(
-        syllabus_unit="Unit 1 & 5: Color Spaces (YCbCr) & JPEG DCT Quantization",
+        signal_domain="Color Space (YCbCr) & 8x8 DCT Quantization",
         algorithm_name="Edge-Normalized Multi-Quality Error Level Analysis (ELA) & JPEG Ghosting",
         latex_formula=r"E_Q(x,y) = \|I_{\text{YCbCr}}(x,y) - \mathcal{D}_Q(\mathcal{E}_Q(I_{\text{YCbCr}}(x,y)))\|_w, \quad Z(x,y) = \frac{|G_\sigma * E_Q - \mu_{\text{med}}|}{1.4826 \cdot \text{MAD}}",
         kernel_or_matrix=[

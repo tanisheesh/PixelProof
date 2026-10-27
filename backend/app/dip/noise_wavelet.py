@@ -158,7 +158,7 @@ def run_noise_wavelet_layer(
     ]
 
     dip_math = DipMathInfo(
-        syllabus_unit="Unit 2 & 4: Adaptive Wiener Filtering & 2D Discrete Wavelet Transform (DWT)",
+        signal_domain="Spatial Wiener Filtering & 2D Discrete Wavelet Transform (DWT)",
         algorithm_name=f"2D-DWT ({wavelet_family.upper()}) HH1 Sub-Band MAD Noise Estimator + Wiener Residual",
         latex_formula=r"\hat{\sigma}_b = \frac{\text{median}(|HH_{1,b} - \text{median}(HH_{1,b})|)}{0.6745}, \quad R_W(x,y) = I(x,y) - \left(\mu_L + \frac{\sigma_L^2 - \nu^2}{\sigma_L^2}(I(x,y) - \mu_L)\right)",
         parameters_used={

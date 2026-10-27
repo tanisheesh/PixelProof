@@ -183,7 +183,7 @@ def run_metadata_dqt_layer(
         anomalies.append("No editing software signatures found in EXIF/DQT headers.")
 
     dip_math = DipMathInfo(
-        syllabus_unit="Unit 5: Image Compression Standards (JPEG DQT Quantization Matrices & Container Forensics)",
+        signal_domain="JPEG Quantization Matrices (DQT) & Container Forensics",
         algorithm_name="JPEG Annex-K Quantization Matrix Fingerprinting & 8x8 High-Frequency DCT Map",
         latex_formula=r"Q_{\text{IJG}}(u,v) = \text{clip}\left(\left\lfloor \frac{S(Q)\cdot Q_{\text{base}}(u,v) + 50}{100} \right\rfloor, 1, 255\right), \quad F^Q(u,v) = \text{round}\left(\frac{F(u,v)}{Q(u,v)}\right)",
         kernel_or_matrix=[[float(v) for v in row] for row in (luma_dqt_2d or STD_LUMINANCE_DQT.tolist())[:4]],

@@ -8,7 +8,7 @@
 
 **Decision:** Build a 7-layer deterministic Digital Image Processing pipeline combining YCbCr Error Level Analysis, 2D Discrete Wavelet Transform (`db4`/`haar`) MAD noise estimation, Adaptive Wiener filtering, 2D-DCT lexicographical block matching, 2nd-order Laplacian + 2D-FFT spectral analysis, 8×8 blocking grid alignment, Scharr chromatic gradient divergence, and Otsu + Morphological localization.
 
-**Reason:** Black-box CNNs cannot explain *why* a pixel was flagged, generalize poorly when an image is re-compressed at an unseen quality factor, and require multi-gigabyte GPU containers. Classical DIP makes every verdict 100% mathematically auditable (tracing directly to a $\sigma$ noise deviation, DCT comb harmonic, or shift vector), executes in `< 1.2s` on a single CPU core, and directly demonstrates every unit of a 4th-year CSE Digital Image Processing curriculum.
+**Reason:** Black-box CNNs cannot explain *why* a pixel was flagged, generalize poorly when an image is re-compressed at an unseen quality factor, and require multi-gigabyte GPU containers. Classical DIP makes every verdict 100% mathematically auditable (tracing directly to a $\sigma$ noise deviation, DCT comb harmonic, or shift vector) and executes in `< 1.2s` on a single CPU core.
 
 **Tradeoff:** Classical DIP requires careful normalization against natural scene edges (such as Sobel gradient suppression in ELA and wavelet noise estimation) so high-contrast natural textures do not trigger false positives.
 
@@ -40,7 +40,7 @@
 
 ## Decision 4 — Dual-Engine Resilience (FastAPI Scientific Backend + Client-Side Canvas DIP Fallback)
 
-**Context:** Free/low-cost cloud container hosts (such as Render) spin down after inactivity and can take 20–40 seconds to cold-start when a recruiter or professor first opens the live demo link.
+**Context:** Free/low-cost cloud container hosts (such as Render) spin down after inactivity and can take 20–40 seconds to cold-start when a user or reviewer first opens the live demo link.
 
 **Decision:** Pair the primary Python FastAPI backend (NumPy/SciPy/OpenCV/PyWavelets) with a zero-dependency TypeScript HTML5 Canvas DIP fallback engine (`frontend/src/lib/client-dip-fallback.ts`).
 
@@ -61,7 +61,7 @@
 
 | Feature | Why deferred |
 |---|---|
-| Deep-learning CNN segmentation (ManTra-Net / TruFor) | Requires GPU hosting and sacrifices mathematical explainability needed for DIP coursework |
+| Deep-learning CNN segmentation (ManTra-Net / TruFor) | Requires GPU hosting and sacrifices deterministic mathematical explainability |
 | Video frame-by-frame temporal forgery detection | Increases compute time by 30–100× per upload; v1 focuses on still-image spatial/frequency forensics |
 | Database persistence of uploaded images | Stateless in-memory processing is faster, cheaper, and preserves user privacy |
 

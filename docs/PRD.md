@@ -8,7 +8,7 @@
 
 ## 1. Problem
 
-Modern image manipulation — from splicing foreign objects and cloning textures (copy-move) to airbrushing/inpainting and re-compressing crops — is ubiquitous, yet most verification tools fall into two broken extremes: either single-heuristic scripts (plain Error Level Analysis that fails on single-saved clones or smooth airbrushing) or opaque deep-learning classifiers that require heavy GPU servers and provide zero mathematical explainability when questioned in an academic viva or forensic audit. Analysts, students, and reviewers need a fast, deterministic, multi-layer Digital Image Processing workbench that exposes the exact spatial and frequency-domain evidence behind every flagged pixel.
+Modern image manipulation — from splicing foreign objects and cloning textures (copy-move) to airbrushing/inpainting and re-compressing crops — is ubiquitous, yet most verification tools fall into two broken extremes: either single-heuristic scripts (plain Error Level Analysis that fails on single-saved clones or smooth airbrushing) or opaque deep-learning classifiers that require heavy GPU servers and provide zero mathematical explainability during a forensic audit. Analysts, security engineers, and reviewers need a fast, deterministic, multi-layer Digital Image Processing workbench that exposes the exact spatial and frequency-domain evidence behind every flagged pixel.
 
 ---
 
@@ -18,7 +18,7 @@ Modern image manipulation — from splicing foreign objects and cloning textures
 2. Provide an interactive forensic workbench with split-screen comparison, 5× synchronized pixel loupe, 8×8 DCT grid overlay, and real-time DIP parameter tuning ($Q$-factor, wavelet basis, block size, morphological kernel, colormap LUT).
 3. Include 6 deterministic ground-truth benchmark cases (Splicing, Copy-Move, Gaussian Retouching, Resampling, Double JPEG Grid Misalignment, and Authentic Camera Control) that achieve 100% classification accuracy out of the box.
 4. Provide a Live Tamper Sandbox where evaluators can forge an image directly in the browser (clone stamp, foreign splice, or healing blur) and immediately test detection.
-5. Surface governing mathematical equations, convolution kernels, 8×8 quantization matrices, and 32-bin residual histograms for every layer to support academic DIP demonstrations.
+5. Surface governing mathematical equations, convolution kernels, 8×8 quantization matrices, and 32-bin residual histograms for every layer.
 
 ---
 
@@ -32,7 +32,7 @@ Modern image manipulation — from splicing foreign objects and cloning textures
 
 ## 4. Users
 
-**Primary:** Computer Science & Engineering students, professors, and digital forensics analysts who need an interactive, mathematically transparent Digital Image Processing workbench to inspect image authenticity and explore spatial/frequency filter responses.
+**Primary:** Digital forensics analysts, security engineers, and media verification teams who need an interactive, mathematically transparent Digital Image Processing workbench to inspect image authenticity and explore spatial/frequency filter responses.
 
 **Secondary:** Technical recruiters and engineering interviewers evaluating system design, signal processing depth, and full-stack execution on live test cases.
 
@@ -41,7 +41,7 @@ Modern image manipulation — from splicing foreign objects and cloning textures
 ## 5. User Stories
 
 1. *As a forensic analyst,* I can upload a suspect image and inspect 7 independent DIP heatmaps side-by-side with the original so that I can verify whether an anomaly is corroborated across multiple signal domains.
-2. *As a CSE student or professor in a DIP viva,* I can switch between layers and inspect the live mathematical formulation, convolution kernel, and 32-bin residual histogram so that I can connect each visual heatmap to its syllabus equation.
+2. *As a signal processing engineer,* I can switch between layers and inspect the live mathematical formulation, convolution kernel, and 32-bin residual histogram so that I can trace each visual heatmap to its governing operator.
 3. *As an evaluator,* I can open the Live Tamper Sandbox, clone or splice a region on a clean image, and click "Analyze Forgery" so that I can verify the engine catches live edits in real time.
 4. *As a researcher,* I can tune ELA quality $Q \in [55, 98]$, switch wavelet families (`haar`, `db2`, `db4`), and adjust morphological structuring element sizes to observe how filter parameters affect localization masks.
 5. *As an auditor,* I can export a complete JSON forensic dossier or printable PDF report containing region bounding boxes, confidence scores, and EXIF/DQT tables.

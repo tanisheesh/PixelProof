@@ -38,7 +38,7 @@ PixelProof/
       utils/encoding.py         Percentile normalization, OpenCV colormaps, 32-bin histograms, Base64 PNG
   frontend/
     src/
-      app/page.tsx              Main Forensic Workbench, Syllabus Drawer, and Sandbox controller
+      app/page.tsx              Main Forensic Workbench and Sandbox controller
       components/workbench/     ImageStage, LayerSelector, DipMathDrawer, ParameterPanel, VerdictCard
       components/sandbox/       TamperCanvas (interactive browser forgery generator)
       lib/api.ts                Typed FastAPI client with automatic browser DIP fallback

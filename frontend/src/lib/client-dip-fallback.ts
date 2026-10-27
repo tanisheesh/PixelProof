@@ -516,7 +516,7 @@ export async function runClientSideDipPipeline(
       histogram_data: l1Vis.histogram,
       metrics: { jpeg_quality_q: params.ela_quality, scale_gain: params.ela_scale },
       dip_math: {
-        syllabus_unit: "Unit 1 & 5: Color Spaces (YCbCr) & JPEG DCT Quantization",
+        signal_domain: "Color Space (YCbCr) & 8x8 DCT Quantization",
         algorithm_name: "Multi-Quality Error Level Analysis (ELA)",
         latex_formula: "E_Q(x,y) = |I_{YCbCr}(x,y) - JPEG_Q(I_{YCbCr}(x,y))|",
         parameters_used: { jpeg_quality_Q: params.ela_quality, scale_gain: params.ela_scale },
@@ -540,7 +540,7 @@ export async function runClientSideDipPipeline(
       histogram_data: l2Vis.histogram,
       metrics: { global_noise_sigma: Number(medSigma.toFixed(3)), block_size: bsize },
       dip_math: {
-        syllabus_unit: "Unit 2 & 4: Adaptive Wiener Filtering & 2D Discrete Wavelet Transform (DWT)",
+        signal_domain: "Spatial Wiener Filtering & 2D Discrete Wavelet Transform (DWT)",
         algorithm_name: "DWT HH1 Sub-Band MAD Noise Estimator",
         latex_formula: "\\hat{\\sigma}_b = \\text{median}(|HH_{1,b}|) / 0.6745",
         parameters_used: { wavelet_basis: params.wavelet_family, block_size: bsize },
@@ -564,7 +564,7 @@ export async function runClientSideDipPipeline(
       histogram_data: l3Vis.histogram,
       metrics: { vector_count: cloneVectors.length, evaluated_blocks: blocks.length },
       dip_math: {
-        syllabus_unit: "Unit 3 & 7: 2D Discrete Cosine Transform (DCT) & Keypoint Feature Descriptors",
+        signal_domain: "2D Discrete Cosine Transform (DCT) & Keypoint Descriptors",
         algorithm_name: "Lexicographically Sorted 2D-DCT Block Matching",
         latex_formula: "\\mathbf{s}_{ij} = (x_i - x_j, y_i - y_j)",
         parameters_used: { block_size: "16x16", similarity_threshold: params.copy_move_threshold },
@@ -584,7 +584,7 @@ export async function runClientSideDipPipeline(
       histogram_data: l4Vis.histogram,
       metrics: { operator: "3x3 Laplacian" },
       dip_math: {
-        syllabus_unit: "Unit 2 & 3: 2nd-Order Laplacian Derivative & 2D-FFT",
+        signal_domain: "2nd-Order Spatial Derivative & 2D Fast Fourier Transform (2D-FFT)",
         algorithm_name: "Laplacian Residual Periodic Correlation",
         latex_formula: "\\nabla^2 f = f(x+1,y)+f(x-1,y)+f(x,y+1)+f(x,y-1)-4f(x,y)",
         parameters_used: { kernel: "3x3 Laplacian" },
@@ -604,7 +604,7 @@ export async function runClientSideDipPipeline(
       histogram_data: l5Vis.histogram,
       metrics: { grid_period: "8x8 px" },
       dip_math: {
-        syllabus_unit: "Unit 3 & 5: 8x8 2D-DCT & Blocking Artifact Grid",
+        signal_domain: "8x8 2D-DCT Coefficient Histograms & Blocking Artifact Grid",
         algorithm_name: "8x8 Block Phase Alignment",
         latex_formula: "\\Delta_x(x,y) = |2I(x,y) - I(x-1,y) - I(x+1,y)|",
         parameters_used: { grid: "8x8" },
@@ -624,7 +624,7 @@ export async function runClientSideDipPipeline(
       histogram_data: l6Vis.histogram,
       metrics: { channels: "R-G & B-G" },
       dip_math: {
-        syllabus_unit: "Unit 1 & 2: First-Order Spatial Gradient Operators",
+        signal_domain: "First-Order Spatial Gradient Operators (Scharr) & Optical Aberration",
         algorithm_name: "Multi-Channel Scharr Gradient Divergence",
         latex_formula: "D_{chroma}(x,y) = 0.5(|\\nabla R - \\nabla G| + |\\nabla B - \\nabla G|)",
         parameters_used: { operator: "Scharr 3x3" },
@@ -646,7 +646,7 @@ export async function runClientSideDipPipeline(
       histogram_data: l5Vis.histogram,
       metrics: { estimated_quality_q: params.ela_quality },
       dip_math: {
-        syllabus_unit: "Unit 5: Image Compression Standards (JPEG DQT)",
+        signal_domain: "JPEG Quantization Matrices (DQT) & Container Forensics",
         algorithm_name: "Quantization Matrix Fingerprinting",
         latex_formula: "F^Q(u,v) = \\text{round}(F(u,v) / Q(u,v))",
         parameters_used: { quality: params.ela_quality },

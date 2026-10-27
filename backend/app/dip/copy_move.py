@@ -259,7 +259,7 @@ def run_copy_move_layer(
     ]
 
     dip_math = DipMathInfo(
-        syllabus_unit="Unit 3 & 7: 2D Discrete Cosine Transform (DCT) & Keypoint Feature Descriptors",
+        signal_domain="2D Discrete Cosine Transform (DCT) & Keypoint Descriptors",
         algorithm_name="Lexicographically Sorted 2D-DCT Block Matching + ORB Shift-Vector Clustering",
         latex_formula=r"F(u,v) = \alpha(u)\alpha(v)\sum_{x=0}^{B-1}\sum_{y=0}^{B-1} f(x,y)\cos\frac{(2x+1)u\pi}{2B}\cos\frac{(2y+1)v\pi}{2B}, \quad \mathbf{s}_{ij} = \mathbf{p}_i - \mathbf{p}_j",
         parameters_used={

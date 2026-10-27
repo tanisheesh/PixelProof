@@ -152,7 +152,7 @@ def run_resampling_fft_layer(
     ]
 
     dip_math = DipMathInfo(
-        syllabus_unit="Unit 2 & 3: 2nd-Order Laplacian Derivative & 2D Fast Fourier Transform (2D-FFT)",
+        signal_domain="2nd-Order Spatial Derivative & 2D Fast Fourier Transform (2D-FFT)",
         algorithm_name="Laplacian Residual Periodic Correlation & 2D-DFT Log-Magnitude Spectrum Analysis",
         latex_formula=r"\nabla^2 f(x,y) = f(x+1,y)+f(x-1,y)+f(x,y+1)+f(x,y-1)-4f(x,y), \quad M(u,v) = \log\left(1 + \left|\mathcal{F}\{\nabla^2 f \cdot w\}\right|\right)",
         kernel_or_matrix=[

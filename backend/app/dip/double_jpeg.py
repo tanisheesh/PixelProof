@@ -145,7 +145,7 @@ def run_double_jpeg_layer(
     ]
 
     dip_math = DipMathInfo(
-        syllabus_unit="Unit 3 & 5: 8x8 2D-DCT Coefficient Histograms & Blocking Artifact Grid (BAG)",
+        signal_domain="8x8 2D-DCT Coefficient Histograms & Blocking Artifact Grid (BAG)",
         algorithm_name="Double Quantization DCT Comb-Periodicity & 8x8 Block Phase Alignment",
         latex_formula=r"Q_{12}(c) = \left\lfloor \frac{\lfloor c / q_1 \rceil \cdot q_1}{q_2} \right\rceil, \quad \Delta_x(x,y) = |2I(x,y) - I(x-1,y) - I(x+1,y)|",
         parameters_used={

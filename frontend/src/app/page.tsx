@@ -5,7 +5,6 @@ import {
   Code2,
   Cpu,
   FlaskConical,
-  GraduationCap,
   Scan,
   ShieldCheck,
   Upload,
@@ -41,7 +40,6 @@ export default function PixelProofWorkbenchPage() {
   const [engineMode, setEngineMode] = useState<"fastapi" | "browser">("fastapi");
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [showSandbox, setShowSandbox] = useState<boolean>(false);
-  const [showSyllabusModal, setShowSyllabusModal] = useState<boolean>(false);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -153,20 +151,6 @@ export default function PixelProofWorkbenchPage() {
               </strong>
             </div>
 
-            {/* Syllabus Mapping Modal Toggle */}
-            <button
-              type="button"
-              onClick={() => setShowSyllabusModal(!showSyllabusModal)}
-              className={`flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-semibold transition cursor-pointer ${
-                showSyllabusModal
-                  ? "border-cyan-400 bg-cyan-500/20 text-cyan-200"
-                  : "border-slate-800 bg-[#0B0F17] text-slate-300 hover:border-slate-700"
-              }`}
-            >
-              <GraduationCap className="h-4 w-4 text-cyan-400" />
-              <span>DIP Syllabus Map</span>
-            </button>
-
             {/* Live Tamper Sandbox Toggle */}
             <button
               type="button"
@@ -206,79 +190,6 @@ export default function PixelProofWorkbenchPage() {
 
       {/* Main Content Container */}
       <main className="mx-auto w-full max-w-[1440px] flex-1 space-y-4 px-4 py-4">
-        {/* Collapsible DIP Syllabus Mapping Reference Drawer */}
-        {showSyllabusModal && (
-          <div className="rounded-xl border border-cyan-500/40 bg-[#0B0F17] p-4 shadow-2xl space-y-3">
-            <div className="flex items-center justify-between border-b border-slate-800 pb-2">
-              <div className="flex items-center gap-2">
-                <GraduationCap className="h-4 w-4 text-cyan-400" />
-                <h2 className="text-xs font-bold uppercase tracking-wider text-cyan-300">
-                  4th-Year CSE Digital Image Processing (DIP) Syllabus Mapping
-                </h2>
-              </div>
-              <button
-                type="button"
-                onClick={() => setShowSyllabusModal(false)}
-                className="text-xs text-slate-400 hover:text-white"
-              >
-                Close &times;
-              </button>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-7 gap-2 text-xs">
-              {[
-                {
-                  unit: "Unit 1: Color Spaces",
-                  topic: "ITU-R BT.601 RGB to YCbCr Conversion & Chroma Subsampling",
-                  layer: "Layer 1 (ELA)",
-                },
-                {
-                  unit: "Unit 2: Spatial Filtering",
-                  topic: "Adaptive Wiener Filter, 3x3 Scharr Gradient & 2nd-Order Laplacian",
-                  layer: "Layers 2, 4, 6",
-                },
-                {
-                  unit: "Unit 3: Frequency Domain",
-                  topic: "2D Fast Fourier Transform (2D-FFT) & 2D Discrete Cosine Transform (DCT)",
-                  layer: "Layers 3, 4, 5",
-                },
-                {
-                  unit: "Unit 4: Wavelets (DWT)",
-                  topic: "Haar / Daubechies db4 2D-DWT HH1 Sub-Band & Donoho MAD Noise Estimator",
-                  layer: "Layer 2 (Noise)",
-                },
-                {
-                  unit: "Unit 5: Compression",
-                  topic: "JPEG 8x8 DCT Quantization Matrices (DQT), Blocking Grid & JPEG Ghosts",
-                  layer: "Layers 1, 5, 7",
-                },
-                {
-                  unit: "Unit 6: Morphology",
-                  topic: "Structuring Element Erosion, Dilation, Opening (A\u2218B) & Closing (A\u2022B)",
-                  layer: "Mask Fusion",
-                },
-                {
-                  unit: "Unit 7: Segmentation",
-                  topic: "Otsu Thresholding, 8-Connected Component Labeling & ORB Keypoints",
-                  layer: "Region Localization",
-                },
-              ].map((item, i) => (
-                <div
-                  key={i}
-                  className="rounded-lg border border-slate-800 bg-[#070A10] p-2.5 flex flex-col justify-between"
-                >
-                  <div>
-                    <div className="font-mono text-[10px] font-bold text-cyan-400">{item.unit}</div>
-                    <div className="mt-1 text-[11px] text-slate-200 leading-snug">{item.topic}</div>
-                  </div>
-                  <div className="mt-2 border-t border-slate-800/80 pt-1 font-mono text-[10px] text-emerald-400">
-                    &rarr; {item.layer}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
         {/* Collapsible Live Tamper Sandbox */}
         {showSandbox && (
           <TamperCanvas

@@ -108,7 +108,7 @@ def run_edge_chromatic_layer(
     ]
 
     dip_math = DipMathInfo(
-        syllabus_unit="Unit 1 & 2: First-Order Spatial Gradient Operators (Sobel / Scharr) & Optical Aberration",
+        signal_domain="First-Order Spatial Gradient Operators (Scharr) & Optical Aberration",
         algorithm_name="Multi-Channel Scharr Gradient Vector Alignment & Boundary Discontinuity Analysis",
         latex_formula=r"\mathbf{G}_c = \left[K_x * I_c, \; K_y * I_c\right]^T, \quad D_{\text{chroma}}(x,y) = \frac{1}{2}\left(\|\mathbf{G}_R\| - \|\mathbf{G}_G\|\right) + \left(1 - \frac{|\mathbf{G}_R \cdot \mathbf{G}_B|}{\|\mathbf{G}_R\|\|\mathbf{G}_B\|}\right)",
         kernel_or_matrix=[

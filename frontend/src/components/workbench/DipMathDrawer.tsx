@@ -21,7 +21,7 @@ export default function DipMathDrawer({ layer }: DipMathDrawerProps) {
           </div>
           <div>
             <div className="text-[11px] font-mono uppercase tracking-wider text-cyan-400">
-              {dip_math.syllabus_unit}
+              {dip_math.signal_domain}
             </div>
             <h3 className="text-sm font-bold text-slate-100">{dip_math.algorithm_name}</h3>
           </div>
@@ -32,7 +32,7 @@ export default function DipMathDrawer({ layer }: DipMathDrawerProps) {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
-        {/* Left: Mathematical Formulation & Viva Guide */}
+        {/* Left: Mathematical Formulation & Signal Guide */}
         <div className="lg:col-span-7 space-y-3">
           <div className="rounded-lg border border-slate-800 bg-[#06090F] p-3">
             <div className="mb-1 flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-slate-400">

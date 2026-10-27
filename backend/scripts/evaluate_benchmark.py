@@ -1,12 +1,12 @@
 """
-Academic Benchmark & Evaluation Suite (`evaluate_benchmark.py`).
+Forensic Benchmark & Evaluation Suite (`evaluate_benchmark.py`).
 
 Evaluates the 7-layer PixelProof DIP pipeline across all built-in synthetic benchmark cases
 and outputs a formatted Markdown table with:
 - Ground Truth vs. Predicted Verdict
 - Overall Tamper Score (0-100)
 - Top Triggered DIP Layer
-- Pixel-level Localization Precision, Recall, F1-Score, and IoU (Intersection over Union)
+- Pixel-level Localization Bounding Boxes
 - Execution Latency (ms)
 """
 

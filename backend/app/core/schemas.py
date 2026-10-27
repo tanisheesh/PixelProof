@@ -44,9 +44,9 @@ class CloneVector(BaseModel):
 
 
 class DipMathInfo(BaseModel):
-    """Educational & Viva inspection metadata explaining the exact DIP math used in the layer."""
+    """Signal processing mathematical telemetry and operator details for the active layer."""
 
-    syllabus_unit: str
+    signal_domain: str
     algorithm_name: str
     latex_formula: str
     kernel_or_matrix: Optional[List[List[float]]] = None

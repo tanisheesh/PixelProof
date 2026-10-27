@@ -32,7 +32,7 @@ export interface CloneVector {
 }
 
 export interface DipMathInfo {
-  syllabus_unit: string;
+  signal_domain: string;
   algorithm_name: string;
   latex_formula: string;
   kernel_or_matrix?: number[][] | null;

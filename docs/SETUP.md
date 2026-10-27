@@ -57,7 +57,7 @@ PixelProof will be running at `http://localhost:3000`.
 
 ---
 
-## 3. Run tests & academic benchmark evaluation
+## 3. Run tests & benchmark evaluation
 
 ```bash
 # Run unit & API integration tests across all 7 DIP layers
