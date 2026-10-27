@@ -113,6 +113,9 @@ export default function AnalyzePage() {
           </div>
 
           <div className="flex flex-wrap items-center gap-2.5 shrink-0">
+            <Link href="/how-it-works" className="brutal-btn">
+              GUIDE &amp; GLOSSARY
+            </Link>
             <input
               ref={fileInputRef}
               type="file"

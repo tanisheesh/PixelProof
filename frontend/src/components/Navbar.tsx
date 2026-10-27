@@ -11,7 +11,7 @@ export default function Navbar() {
     { href: "/", code: "01", label: "SPECIFICATION", shortLabel: "SPEC" },
     { href: "/demo", code: "02", label: "BENCHMARK & SANDBOX", shortLabel: "DEMO" },
     { href: "/analyze", code: "03", label: "IMAGE ANALYZER", shortLabel: "ANALYZE" },
-    { href: "/how-it-works", code: "04", label: "DIP MATHEMATICS", shortLabel: "MATH" },
+    { href: "/how-it-works", code: "04", label: "GUIDE & GLOSSARY", shortLabel: "GUIDE" },
   ];
 
   return (

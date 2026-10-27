@@ -156,6 +156,9 @@ export default function DemoPage() {
               </button>
             </div>
 
+            <Link href="/how-it-works" className="brutal-btn w-full sm:w-auto">
+              WHAT DO THESE METRICS MEAN?
+            </Link>
             <Link href="/analyze" className="brutal-btn w-full sm:w-auto">
               UPLOAD CUSTOM IMAGE →
             </Link>

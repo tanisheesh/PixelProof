@@ -149,7 +149,7 @@ export default function LandingPage() {
                 LAUNCH DEMO &amp; SANDBOX →
               </Link>
               <Link href="/how-it-works" className="brutal-btn w-full sm:w-auto">
-                READ DIP MATH SPEC
+                GUIDE &amp; GLOSSARY →
               </Link>
             </div>
           </div>

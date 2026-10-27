@@ -34,7 +34,7 @@ export default function Footer() {
             [03] Image Analyzer
           </Link>
           <Link href="/how-it-works" className="hover:text-[#00e5ff] transition">
-            [04] Math Spec
+            [04] Guide &amp; Glossary
           </Link>
           <a
             href="https://github.com/tanisheesh/PixelProof"
