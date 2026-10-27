@@ -1,7 +1,6 @@
 "use client";
 
 import React from "react";
-import { Beaker, CheckCircle2, ShieldAlert } from "lucide-react";
 import { PresetCase } from "@/lib/types";
 
 interface PresetGalleryProps {
@@ -18,21 +17,14 @@ export default function PresetGallery({
   isLoading,
 }: PresetGalleryProps) {
   return (
-    <div className="rounded-xl border border-slate-800/90 bg-[#0B0F17] p-4">
-      <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
-        <div className="flex items-center gap-2">
-          <Beaker className="h-4 w-4 text-cyan-400" />
-          <h3 className="text-xs font-bold uppercase tracking-wider text-slate-200">
-            Forensic Benchmark Suite (6 Ground-Truth Test Cases)
-          </h3>
-        </div>
-        <span className="font-mono text-[11px] text-slate-400">
-          Select a case to run all 7 DIP algorithms
-        </span>
+    <div className="panel-frame">
+      <div className="panel-header">
+        <span>BENCHMARK_SUITE // 6 GROUND-TRUTH FORENSIC TEST CASES</span>
+        <span className="text-[#00e5ff]">SELECT CASE TO EXECUTE 7 DIP LAYERS</span>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-2.5">
-        {presets.map((p) => {
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 divide-y sm:divide-y-0 sm:divide-x divide-[#222220] bg-[#0e0e0e]">
+        {presets.map((p, idx) => {
           const isSelected = selectedPresetId === p.id;
           const isAuth = p.expected_verdict === "AUTHENTIC";
           return (
@@ -41,51 +33,50 @@ export default function PresetGallery({
               type="button"
               disabled={isLoading}
               onClick={() => onSelectPreset(p.id)}
-              className={`group flex flex-col justify-between rounded-lg border p-2.5 text-left transition cursor-pointer ${
+              className={`p-3 text-left flex flex-col justify-between transition-colors cursor-pointer min-w-0 ${
                 isSelected
-                  ? "border-cyan-400 bg-cyan-950/30 ring-1 ring-cyan-400/50"
-                  : "border-slate-800/80 bg-[#070A10] hover:border-slate-700"
+                  ? "bg-[#161616] ring-1 ring-inset ring-[#00e5ff]"
+                  : "hover:bg-[#121212]"
               }`}
             >
               <div>
+                <div className="flex items-center justify-between font-mono text-[10px] mb-2">
+                  <span className="text-[#88857e]">CASE_0{idx + 1}</span>
+                  <span
+                    className={`px-1.5 py-0.5 font-bold border ${
+                      isAuth
+                        ? "border-[#00e676] text-[#00e676] bg-[#00e676]/10"
+                        : "border-[#ff2a2a] text-[#ff2a2a] bg-[#ff2a2a]/10"
+                    }`}
+                  >
+                    {p.expected_verdict}
+                  </span>
+                </div>
+
                 {p.preview_base64 && (
-                  <div className="relative mb-2 h-20 w-full overflow-hidden rounded border border-slate-800 bg-slate-950">
+                  <div className="relative mb-2.5 h-20 w-full overflow-hidden border border-[#222220] bg-[#080808]">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
                       src={p.preview_base64}
                       alt={p.title}
-                      className="h-full w-full object-cover group-hover:scale-105 transition duration-300"
+                      className="h-full w-full object-cover"
                     />
-                    <span
-                      className={`absolute top-1 right-1 flex items-center gap-0.5 rounded px-1.5 py-0.5 font-mono text-[9px] font-bold ${
-                        isAuth
-                          ? "bg-emerald-950/90 text-emerald-300 border border-emerald-500/40"
-                          : "bg-rose-950/90 text-rose-300 border border-rose-500/40"
-                      }`}
-                    >
-                      {isAuth ? (
-                        <CheckCircle2 className="h-2.5 w-2.5" />
-                      ) : (
-                        <ShieldAlert className="h-2.5 w-2.5" />
-                      )}
-                      {p.expected_verdict}
-                    </span>
                   </div>
                 )}
 
-                <div className="text-xs font-bold text-slate-100 group-hover:text-cyan-300 line-clamp-1">
+                <div className="font-display font-bold text-lg uppercase text-[#f2efe9] leading-tight line-clamp-1">
                   {p.title}
                 </div>
-                <p className="mt-1 text-[11px] text-slate-400 line-clamp-2 leading-snug">
+                <p className="mt-1 text-[11px] text-[#88857e] line-clamp-2 leading-snug">
                   {p.description}
                 </p>
               </div>
 
-              <div className="mt-2 flex flex-wrap gap-1 pt-1 border-t border-slate-800/60">
+              <div className="mt-3 pt-2 border-t border-[#222220] flex flex-wrap gap-1">
                 {p.dip_concepts_highlighted.slice(0, 2).map((tag, i) => (
                   <span
                     key={i}
-                    className="rounded bg-slate-900 px-1.5 py-0.5 font-mono text-[9px] text-cyan-300/90 truncate max-w-full"
+                    className="bg-[#080808] border border-[#222220] px-1.5 py-0.5 font-mono text-[9px] text-[#00e5ff] truncate max-w-full"
                   >
                     {tag}
                   </span>

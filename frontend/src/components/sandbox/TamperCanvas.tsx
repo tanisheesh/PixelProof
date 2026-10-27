@@ -1,14 +1,6 @@
 "use client";
 
 import React, { useEffect, useRef, useState } from "react";
-import {
-  Copy,
-  Eraser,
-  Flame,
-  RotateCcw,
-  ScanSearch,
-  Sparkles,
-} from "lucide-react";
 import { renderSyntheticPresetDataUrl } from "@/lib/client-dip-fallback";
 
 interface TamperCanvasProps {
@@ -66,7 +58,6 @@ export default function TamperCanvas({
     const half = Math.floor(brushSize / 2);
 
     if (activeTool === "copy_move") {
-      // Copy pixels from cloneSource and paste at (x, y)
       const sx = Math.max(0, Math.min(canvas.width - brushSize, cloneSource.x - half));
       const sy = Math.max(0, Math.min(canvas.height - brushSize, cloneSource.y - half));
       const dx = Math.max(0, Math.min(canvas.width - brushSize, x - half));
@@ -74,7 +65,6 @@ export default function TamperCanvas({
       const patch = ctx.getImageData(sx, sy, brushSize, brushSize);
       ctx.putImageData(patch, dx, dy);
     } else if (activeTool === "splice") {
-      // Splice a high-frequency foreign anomaly patch with strong synthetic noise + chromatic border
       const dx = Math.max(0, Math.min(canvas.width - brushSize, x - half));
       const dy = Math.max(0, Math.min(canvas.height - brushSize, y - half));
       const patch = ctx.createImageData(brushSize, brushSize);
@@ -91,7 +81,6 @@ export default function TamperCanvas({
       }
       ctx.putImageData(patch, dx, dy);
     } else if (activeTool === "retouch_blur") {
-      // Apply heavy box/Gaussian smoothing inside region (destroys high-frequency DWT HH1 sensor noise)
       const dx = Math.max(0, Math.min(canvas.width - brushSize, x - half));
       const dy = Math.max(0, Math.min(canvas.height - brushSize, y - half));
       const src = ctx.getImageData(dx, dy, brushSize, brushSize);
@@ -144,111 +133,81 @@ export default function TamperCanvas({
   };
 
   return (
-    <div className="rounded-xl border border-cyan-500/30 bg-[#0B0F17] p-4 space-y-4">
-      <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-800 pb-3">
-        <div>
-          <span className="font-mono text-[10px] uppercase tracking-widest text-cyan-400">
-            Interactive Self-Attack &amp; Verification Lab
-          </span>
-          <h3 className="text-base font-bold text-slate-100">
-            Live Tamper Sandbox — Forge an Image &amp; Test the 7 DIP Layers
-          </h3>
-        </div>
-
+    <div className="panel-frame">
+      <div className="panel-header">
+        <span>TAMPER_SANDBOX // SELF-ATTACK &amp; VERIFICATION CANVAS</span>
         <div className="flex items-center gap-2">
           <button
             type="button"
             onClick={loadCleanBaseImage}
-            className="flex items-center gap-1.5 rounded-lg border border-slate-700 bg-slate-900 px-3 py-1.5 text-xs font-medium text-slate-300 hover:text-white transition cursor-pointer"
+            className="px-2.5 py-1 border border-[#3a3834] bg-[#151515] text-[#f2efe9] hover:border-[#00e5ff] cursor-pointer"
           >
-            <RotateCcw className="h-3.5 w-3.5" />
-            Reset Clean Frame
+            RESET CLEAN FRAME
           </button>
           <button
             type="button"
             disabled={isAnalyzing}
             onClick={handleRunForensics}
-            className="flex items-center gap-1.5 rounded-lg bg-gradient-to-r from-rose-500 to-amber-500 px-4 py-1.5 text-xs font-bold uppercase tracking-wider text-slate-950 shadow-lg hover:brightness-110 transition cursor-pointer"
+            className="brutal-btn brutal-btn-danger !py-1 !px-3 !text-[10px]"
           >
-            <ScanSearch className="h-4 w-4" />
-            {isAnalyzing ? "Running 7 DIP Layers..." : `Analyze Forgery (${editCount} edits)`}
+            {isAnalyzing ? "RUNNING 7 DIP LAYERS..." : `ANALYZE FORGERY [${editCount} EDITS] →`}
           </button>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-start">
-        {/* Left Controls */}
-        <div className="lg:col-span-4 space-y-3">
-          <div className="text-xs font-semibold uppercase tracking-wider text-slate-400">
-            1. Choose Manipulation Attack Vector
+      <div className="p-4 sm:p-6 grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+        {/* Left 5 Cols: Attack Controls */}
+        <div className="lg:col-span-5 space-y-3 font-mono text-xs">
+          <div className="text-[10px] uppercase tracking-wider text-[#00e5ff]">
+            SELECT MANIPULATION VECTOR &amp; CLICK CANVAS
           </div>
 
-          <button
-            type="button"
-            onClick={() => setActiveTool("copy_move")}
-            className={`w-full flex items-start gap-2.5 rounded-lg border p-3 text-left transition cursor-pointer ${
-              activeTool === "copy_move"
-                ? "border-cyan-400 bg-cyan-950/30"
-                : "border-slate-800 bg-[#070A10] hover:border-slate-700"
-            }`}
-          >
-            <Copy className="h-4 w-4 text-cyan-400 shrink-0 mt-0.5" />
-            <div>
-              <div className="text-xs font-bold text-slate-100">
-                Copy-Move Clone Stamp (Layer 3)
+          {[
+            {
+              id: "copy_move" as const,
+              code: "ATK_01",
+              title: "COPY-MOVE CLONE STAMP (LAYER 3)",
+              desc: `Clones the emblem at (${cloneSource.x}, ${cloneSource.y}) to clicked position. Shift+Click sets new clone source.`,
+            },
+            {
+              id: "splice" as const,
+              code: "ATK_02",
+              title: "FOREIGN OBJECT SPLICE (LAYERS 1, 2 & 6)",
+              desc: "Pastes a high-noise foreign patch with mismatched DCT quantization and sharp chromatic seams.",
+            },
+            {
+              id: "retouch_blur" as const,
+              code: "ATK_03",
+              title: "GAUSSIAN HEALING BRUSH (LAYER 2)",
+              desc: "Smooths local texture and destroys the camera's Daubechies db4 HH1 sensor noise floor.",
+            },
+          ].map((tool) => (
+            <button
+              key={tool.id}
+              type="button"
+              onClick={() => setActiveTool(tool.id)}
+              className={`w-full p-3.5 text-left border transition-colors cursor-pointer ${
+                activeTool === tool.id
+                  ? "border-[#00e5ff] bg-[#151515]"
+                  : "border-[#222220] bg-[#080808] hover:bg-[#111111]"
+              }`}
+            >
+              <div className="flex items-center justify-between text-[10px] text-[#88857e] mb-1">
+                <span>[{tool.code}]</span>
+                <span className={activeTool === tool.id ? "text-[#00e5ff] font-bold" : ""}>
+                  {activeTool === tool.id ? "● ARMED" : "SELECT"}
+                </span>
               </div>
-              <p className="text-[11px] text-slate-400 mt-0.5">
-                Clones the emblem crate at ({cloneSource.x}, {cloneSource.y}) to wherever you click. Hold{" "}
-                <kbd className="rounded bg-slate-800 px-1 font-mono text-[10px]">Shift+Click</kbd> to move source.
-              </p>
-            </div>
-          </button>
+              <div className="text-xs font-bold text-[#f2efe9]">{tool.title}</div>
+              <p className="text-[11px] text-[#88857e] mt-1 font-sans leading-snug">{tool.desc}</p>
+            </button>
+          ))}
 
-          <button
-            type="button"
-            onClick={() => setActiveTool("splice")}
-            className={`w-full flex items-start gap-2.5 rounded-lg border p-3 text-left transition cursor-pointer ${
-              activeTool === "splice"
-                ? "border-rose-400 bg-rose-950/30"
-                : "border-slate-800 bg-[#070A10] hover:border-slate-700"
-            }`}
-          >
-            <Flame className="h-4 w-4 text-rose-400 shrink-0 mt-0.5" />
-            <div>
-              <div className="text-xs font-bold text-slate-100">
-                Foreign Object Splice (Layers 1, 2 &amp; 6)
-              </div>
-              <p className="text-[11px] text-slate-400 mt-0.5">
-                Pastes a high-noise foreign patch with mismatched DCT quantization and sharp chromatic edges.
-              </p>
-            </div>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => setActiveTool("retouch_blur")}
-            className={`w-full flex items-start gap-2.5 rounded-lg border p-3 text-left transition cursor-pointer ${
-              activeTool === "retouch_blur"
-                ? "border-amber-400 bg-amber-950/30"
-                : "border-slate-800 bg-[#070A10] hover:border-slate-700"
-            }`}
-          >
-            <Eraser className="h-4 w-4 text-amber-400 shrink-0 mt-0.5" />
-            <div>
-              <div className="text-xs font-bold text-slate-100">
-                Gaussian Healing / Airbrush (Layer 2)
-              </div>
-              <p className="text-[11px] text-slate-400 mt-0.5">
-                Smooths out local texture and erases the camera&apos;s DWT HH1 high-frequency sensor noise floor.
-              </p>
-            </div>
-          </button>
-
-          <div className="rounded-lg border border-slate-800 bg-[#070A10] p-3">
-            <div className="flex justify-between text-xs mb-1">
-              <span className="text-slate-300">Patch / Brush Dimension</span>
-              <span className="font-mono text-cyan-400 font-bold">
-                {brushSize}&times;{brushSize} px
+          <div className="border border-[#222220] bg-[#080808] p-3">
+            <div className="flex justify-between mb-1">
+              <span className="text-[#88857e]">PATCH DIMENSION</span>
+              <span className="text-[#00e5ff] font-bold">
+                {brushSize}&times;{brushSize}PX
               </span>
             </div>
             <input
@@ -258,29 +217,24 @@ export default function TamperCanvas({
               step={8}
               value={brushSize}
               onChange={(e) => setBrushSize(Number(e.target.value))}
-              className="w-full h-1.5 accent-cyan-400 cursor-pointer"
+              className="w-full h-1.5 accent-[#00e5ff] cursor-pointer"
             />
           </div>
         </div>
 
-        {/* Right Interactive Canvas */}
-        <div className="lg:col-span-8 flex flex-col items-center">
-          <div className="mb-2 flex w-full items-center justify-between text-xs text-slate-400">
-            <span className="flex items-center gap-1.5">
-              <Sparkles className="h-3.5 w-3.5 text-cyan-400" />
-              Click anywhere on the image below to apply the selected manipulation, then click{" "}
-              <strong className="text-rose-300">Analyze Forgery</strong>.
-            </span>
-            <span className="font-mono text-[11px] text-cyan-300">512 &times; 384 px</span>
+        {/* Right 7 Cols: Interactive Forgery Canvas */}
+        <div className="lg:col-span-7 flex flex-col items-center">
+          <div className="w-full flex items-center justify-between font-mono text-[10px] text-[#88857e] mb-2">
+            <span>CLICK IMAGE BELOW TO APPLY [{activeTool.toUpperCase()}]</span>
+            <span className="text-[#00e5ff]">512 &times; 384 PX</span>
           </div>
-
-          <div className="overflow-hidden rounded-lg border-2 border-dashed border-cyan-500/40 bg-black shadow-xl">
+          <div className="border-2 border-[#00e5ff] bg-[#050505] w-full max-w-[560px]">
             <canvas
               ref={canvasRef}
               width={512}
               height={384}
               onClick={handleCanvasClick}
-              className="w-full max-w-[560px] cursor-crosshair block"
+              className="w-full h-auto cursor-crosshair block"
             />
           </div>
         </div>

@@ -2,12 +2,8 @@
 
 import React, { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
-import {
-  Beaker,
-  Cpu,
-  FlaskConical,
-  Upload,
-} from "lucide-react";
+import Footer from "@/components/Footer";
+import Navbar from "@/components/Navbar";
 import PresetGallery from "@/components/PresetGallery";
 import TamperCanvas from "@/components/sandbox/TamperCanvas";
 import DipMathDrawer from "@/components/workbench/DipMathDrawer";
@@ -114,127 +110,106 @@ export default function DemoPage() {
     report?.layers.find((l) => l.id === activeLayerId) || report?.layers[0];
 
   return (
-    <div className="mx-auto max-w-[1400px] px-4 space-y-6">
-      {/* Page Header & Mode Switcher */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-800/80 pb-5">
-        <div>
-          <div className="font-mono text-xs uppercase tracking-widest text-cyan-400">
-            Interactive Forensic Showcase
-          </div>
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-white mt-1">
-            Benchmark Demo &amp; Live Tamper Sandbox
-          </h1>
-          <p className="text-xs sm:text-sm text-slate-400 mt-1">
-            Inspect 6 pre-built ground-truth forgery cases or forge an image yourself in the
-            browser to watch the 7 DIP layers detect your edit.
-          </p>
-        </div>
+    <div className="min-h-screen flex flex-col overflow-x-hidden">
+      <Navbar />
 
-        <div className="flex flex-wrap items-center gap-2">
-          {/* Sub-mode tabs */}
-          <div className="flex rounded-xl border border-slate-800 bg-[#0B0F17] p-1">
-            <button
-              type="button"
-              onClick={() => setDemoTab("presets")}
-              className={`flex items-center gap-1.5 rounded-lg px-3.5 py-2 text-xs font-bold transition cursor-pointer ${
-                demoTab === "presets"
-                  ? "bg-cyan-500/20 text-cyan-300 border border-cyan-500/40"
-                  : "text-slate-400 hover:text-slate-200"
-              }`}
-            >
-              <Beaker className="h-3.5 w-3.5" />
-              <span>1. Pre-Loaded Benchmark Cases</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => setDemoTab("sandbox")}
-              className={`flex items-center gap-1.5 rounded-lg px-3.5 py-2 text-xs font-bold transition cursor-pointer ${
-                demoTab === "sandbox"
-                  ? "bg-rose-500/20 text-rose-300 border border-rose-500/40"
-                  : "text-slate-400 hover:text-slate-200"
-              }`}
-            >
-              <FlaskConical className="h-3.5 w-3.5" />
-              <span>2. Live Tamper Sandbox</span>
-            </button>
+      <main className="flex-1 max-w-[1400px] w-full mx-auto px-3 sm:px-6 lg:px-8 space-y-6">
+        {/* Page Header Banner */}
+        <section className="border-x border-b border-[#222220] bg-[#0e0e0e] p-5 sm:p-7 flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+          <div>
+            <div className="font-mono text-[10px] sm:text-[11px] uppercase tracking-widest text-[#00e5ff] mb-1">
+              {"// [02] INTERACTIVE BENCHMARK & SELF-ATTACK SANDBOX"}
+            </div>
+            <h1 className="font-display font-black text-3xl sm:text-5xl uppercase tracking-tight text-[#f2efe9]">
+              BENCHMARK SUITE &amp; LIVE TAMPER SANDBOX
+            </h1>
+            <p className="text-xs sm:text-sm text-[#88857e] mt-1 max-w-2xl">
+              Select any of the 6 ground-truth forensic cases below or switch to the Live Tamper
+              Sandbox to clone, splice, or blur an image yourself and watch the 7 DIP layers
+              isolate your edit.
+            </p>
           </div>
 
-          <Link
-            href="/analyze"
-            className="flex items-center gap-1.5 rounded-xl bg-cyan-400 px-4 py-2.5 text-xs font-bold text-slate-950 hover:bg-cyan-300 transition"
-          >
-            <Upload className="h-3.5 w-3.5" />
-            <span>Have your own image? Go to Analyzer &rarr;</span>
-          </Link>
-        </div>
-      </div>
+          <div className="flex flex-wrap items-center gap-2 shrink-0">
+            <div className="grid grid-cols-2 border border-[#222220] w-full sm:w-auto">
+              <button
+                type="button"
+                onClick={() => setDemoTab("presets")}
+                className={`px-4 py-2.5 font-mono text-[11px] font-bold tracking-wider border-r border-[#222220] cursor-pointer ${
+                  demoTab === "presets"
+                    ? "bg-[#00e5ff] text-[#080808]"
+                    : "bg-[#080808] text-[#88857e] hover:text-[#f2efe9]"
+                }`}
+              >
+                [01] 6 BENCHMARK CASES
+              </button>
+              <button
+                type="button"
+                onClick={() => setDemoTab("sandbox")}
+                className={`px-4 py-2.5 font-mono text-[11px] font-bold tracking-wider cursor-pointer ${
+                  demoTab === "sandbox"
+                    ? "bg-[#ff2a2a] text-[#080808]"
+                    : "bg-[#080808] text-[#88857e] hover:text-[#f2efe9]"
+                }`}
+              >
+                [02] LIVE TAMPER SANDBOX
+              </button>
+            </div>
 
-      {/* Active Demo Selector Area */}
-      {demoTab === "presets" ? (
-        <PresetGallery
-          presets={presets}
-          selectedPresetId={selectedPresetId}
-          onSelectPreset={handleSelectPreset}
-          isLoading={isLoading}
-        />
-      ) : (
-        <TamperCanvas
-          onAnalyzeTamperedFile={handleSandboxAnalyze}
-          isAnalyzing={isLoading}
-        />
-      )}
+            <Link href="/analyze" className="brutal-btn w-full sm:w-auto">
+              UPLOAD CUSTOM IMAGE →
+            </Link>
+          </div>
+        </section>
 
-      {/* Engine Status Strip */}
-      <div className="flex items-center justify-between rounded-lg border border-slate-800/80 bg-[#0B0F17] px-4 py-2 text-xs text-slate-400">
-        <div className="flex items-center gap-2">
-          <Cpu className="h-3.5 w-3.5 text-emerald-400" />
-          <span>
-            Active Compute Engine:{" "}
-            <strong className="font-mono text-emerald-400">
-              {engineMode === "fastapi"
-                ? "FastAPI Python (OpenCV + SciPy + PyWavelets)"
-                : "Browser Canvas DIP Engine"}
-            </strong>
-          </span>
-        </div>
-        {report && (
-          <span className="font-mono text-cyan-300">
-            Active Subject: <strong>{report.filename}</strong> ({report.processing_time_ms.toFixed(0)} ms)
-          </span>
+        {/* Active Demo Mode Panel */}
+        {demoTab === "presets" ? (
+          <PresetGallery
+            presets={presets}
+            selectedPresetId={selectedPresetId}
+            onSelectPreset={handleSelectPreset}
+            isLoading={isLoading}
+          />
+        ) : (
+          <TamperCanvas
+            onAnalyzeTamperedFile={handleSandboxAnalyze}
+            isAnalyzing={isLoading}
+          />
         )}
-      </div>
 
-      {/* Full 7-Layer Workbench Results */}
-      {report && (
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-start">
-          <div className="lg:col-span-8 space-y-4">
-            <ImageStage report={report} activeLayer={activeLayerObj} />
+        {/* Full 7-Layer Forensic Workbench Grid */}
+        {report && (
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
+            <div className="lg:col-span-8 space-y-5 min-w-0">
+              <ImageStage report={report} activeLayer={activeLayerObj} />
 
-            <LayerSelector
-              report={report}
-              activeLayerId={activeLayerId}
-              onSelectLayer={setActiveLayerId}
-            />
+              <LayerSelector
+                report={report}
+                activeLayerId={activeLayerId}
+                onSelectLayer={setActiveLayerId}
+              />
 
-            {mathDrawerLayer && <DipMathDrawer layer={mathDrawerLayer} />}
+              {mathDrawerLayer && <DipMathDrawer layer={mathDrawerLayer} />}
+            </div>
+
+            <div className="lg:col-span-4 space-y-5 min-w-0">
+              <VerdictCard report={report} engineMode={engineMode} />
+
+              <ParameterPanel
+                params={params}
+                onChange={setParams}
+                onReanalyze={handleReanalyze}
+                onReset={() => setParams(DEFAULT_PARAMS)}
+                isLoading={isLoading}
+              />
+
+              <MetadataTable metadata={report.metadata} />
+            </div>
           </div>
+        )}
+      </main>
 
-          <div className="lg:col-span-4 space-y-4">
-            <VerdictCard report={report} engineMode={engineMode} />
-
-            <ParameterPanel
-              params={params}
-              onChange={setParams}
-              onReanalyze={handleReanalyze}
-              onReset={() => setParams(DEFAULT_PARAMS)}
-              isLoading={isLoading}
-            />
-
-            <MetadataTable metadata={report.metadata} />
-          </div>
-        </div>
-      )}
+      <Footer />
     </div>
   );
 }

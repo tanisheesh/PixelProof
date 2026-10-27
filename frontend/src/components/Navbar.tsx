@@ -1,74 +1,109 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Scan, Upload } from "lucide-react";
 
 export default function Navbar() {
   const pathname = usePathname();
-  const [scrolled, setScrolled] = useState(false);
-
-  useEffect(() => {
-    const handleScroll = () => setScrolled(window.scrollY > 20);
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
 
   const navLinks = [
-    { href: "/", label: "Home" },
-    { href: "/demo", label: "Interactive Demo" },
-    { href: "/how-it-works", label: "How It Works" },
+    { href: "/", code: "01", label: "SPECIFICATION", shortLabel: "SPEC" },
+    { href: "/demo", code: "02", label: "BENCHMARK & SANDBOX", shortLabel: "DEMO" },
+    { href: "/analyze", code: "03", label: "IMAGE ANALYZER", shortLabel: "ANALYZE" },
+    { href: "/how-it-works", code: "04", label: "DIP MATHEMATICS", shortLabel: "MATH" },
   ];
 
   return (
-    <nav
-      className={`fixed top-4 left-1/2 -translate-x-1/2 z-50 transition-all duration-300 ${
-        scrolled
-          ? "shadow-[0_12px_40px_rgba(0,0,0,0.7)] border-slate-700/80"
-          : "border-slate-800/80"
-      } rounded-full border bg-[#070A10]/90 backdrop-blur-xl px-4 py-2`}
-    >
-      <div className="flex items-center gap-4 sm:gap-6">
-        {/* Brand Logo */}
-        <Link href="/" className="flex items-center gap-2 group">
-          <div className="flex h-7 w-7 items-center justify-center rounded-full bg-cyan-500/15 border border-cyan-400/40 group-hover:border-cyan-300 transition">
-            <Scan className="h-3.5 w-3.5 text-cyan-400" />
+    <header className="sticky top-0 z-50 w-full bg-[#080808]/95 backdrop-blur-sm border-b border-[#222220]">
+      <div className="max-w-[1400px] mx-auto px-3 sm:px-6 lg:px-8 h-14 flex items-center justify-between gap-2">
+        {/* Brand */}
+        <Link href="/" className="flex items-center gap-2.5 group min-w-0">
+          <div className="w-7 h-7 shrink-0 bg-[#00e5ff] text-[#080808] font-mono font-bold text-xs flex items-center justify-center tracking-tighter">
+            PP
           </div>
-          <span className="font-mono text-sm font-extrabold tracking-widest text-white">
-            PIXEL<span className="text-cyan-400">PROOF</span>
-          </span>
+          <div className="flex items-baseline gap-2 truncate">
+            <span className="font-display font-black text-xl sm:text-2xl tracking-tight text-[#f2efe9]">
+              PIXELPROOF
+            </span>
+            <span className="hidden xl:inline font-mono text-[10px] text-[#88857e] tracking-widest">
+              SYS.REV.1.0 // 7-LAYER DIP FORENSICS
+            </span>
+          </div>
         </Link>
 
-        {/* Navigation Links */}
-        <div className="flex items-center gap-1 sm:gap-2">
-          {navLinks.map((link) => {
-            const isActive = pathname === link.href;
+        {/* Center Navigation (Desktop) */}
+        <nav className="hidden md:flex items-center h-full">
+          {navLinks.map((item) => {
+            const active = pathname === item.href;
             return (
               <Link
-                key={link.href}
-                href={link.href}
-                className={`rounded-full px-3 py-1 text-xs font-medium transition ${
-                  isActive
-                    ? "bg-slate-800 text-cyan-300 font-semibold"
-                    : "text-slate-400 hover:text-slate-100"
+                key={item.href}
+                href={item.href}
+                className={`h-14 px-3.5 lg:px-5 flex items-center gap-2 font-mono text-[11px] lg:text-xs tracking-wider border-l border-[#222220] last:border-r transition-colors whitespace-nowrap ${
+                  active
+                    ? "bg-[#151515] text-[#00e5ff] border-b-2 border-b-[#00e5ff]"
+                    : "text-[#88857e] hover:text-[#f2efe9] hover:bg-[#0e0e0e]"
                 }`}
               >
-                {link.label}
+                <span className="text-[10px] text-[#4a4843]">[{item.code}]</span>
+                <span>{item.label}</span>
               </Link>
             );
           })}
-        </div>
+        </nav>
 
-        {/* Primary CTA -> User Workspace */}
-        <Link
-          href="/analyze"
-          className="flex items-center gap-1.5 rounded-full bg-cyan-400 px-4 py-1.5 text-xs font-bold text-slate-950 shadow-[0_0_20px_rgba(6,182,212,0.35)] hover:bg-cyan-300 hover:scale-105 transition"
-        >
-          <Upload className="h-3.5 w-3.5" />
-          <span>Analyze Image</span>
-        </Link>
+        {/* Right Actions */}
+        <div className="flex items-center gap-2 shrink-0">
+          <a
+            href="https://github.com/tanisheesh/PixelProof"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="font-mono text-[11px] sm:text-xs text-[#88857e] hover:text-[#f2efe9] px-2.5 sm:px-3 py-1.5 border border-[#222220] hover:border-[#88857e] transition"
+          >
+            SRC ↗
+          </a>
+          {pathname !== "/analyze" ? (
+            <Link
+              href="/analyze"
+              className="brutal-btn brutal-btn-primary !py-1.5 !px-3 sm:!py-2 sm:!px-4 !text-[10px] sm:!text-xs"
+            >
+              ANALYZE IMAGE →
+            </Link>
+          ) : (
+            <Link
+              href="/demo"
+              className="brutal-btn !py-1.5 !px-3 sm:!py-2 sm:!px-4 !text-[10px] sm:!text-xs !border-[#00e676] !text-[#00e676]"
+            >
+              DEMO SUITE →
+            </Link>
+          )}
+        </div>
       </div>
-    </nav>
+
+      {/* Mobile Navigation Strip (4 Columns, Responsive on all phones) */}
+      <nav
+        aria-label="Mobile Navigation"
+        className="grid grid-cols-4 md:hidden border-t border-[#222220] bg-[#0b0b0b]"
+      >
+        {navLinks.map((item) => {
+          const active = pathname === item.href;
+          return (
+            <Link
+              key={item.href}
+              href={item.href}
+              className={`py-2.5 px-1 text-center font-mono text-[10px] tracking-wider border-r border-[#222220] last:border-r-0 truncate ${
+                active
+                  ? "text-[#00e5ff] bg-[#151515] font-bold border-b-2 border-b-[#00e5ff]"
+                  : "text-[#88857e]"
+              }`}
+            >
+              <span className="hidden xs:inline">[{item.code}] </span>
+              {item.shortLabel}
+            </Link>
+          );
+        })}
+      </nav>
+    </header>
   );
 }

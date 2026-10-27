@@ -2,208 +2,196 @@
 
 import React from "react";
 import Link from "next/link";
-import { ArrowRight, Sigma, Sparkles, Upload } from "lucide-react";
+import Footer from "@/components/Footer";
+import Navbar from "@/components/Navbar";
 
 const PIPELINE_STEPS = [
   {
     num: "01",
-    name: "Error Level Analysis (ELA) & Multi-Quality JPEG Ghosts",
+    name: "ERROR LEVEL ANALYSIS (ELA) & MULTI-QUALITY JPEG GHOSTS",
     weight: "22%",
     domain: "ITU-R BT.601 YCbCr Color Space & 8×8 DCT Quantization",
-    formula: "E_Q(x,y) = || I_YCbCr(x,y) - JPEG_Q(I_YCbCr(x,y)) ||_w",
+    formula: "E_Q(x,y) = || I_YCbCr(x,y) - D_Q(E_Q(I_YCbCr(x,y))) ||_w,   Z(x,y) = |G_σ * E_Q - μ_med| / (1.4826 · MAD)",
     description:
-      "Every JPEG image divides the frame into non-overlapping 8×8 pixel blocks and quantizes their 2D Discrete Cosine Transform (DCT) coefficients. When an unmodified JPEG is re-compressed at quality Q, the quantization error is uniform across the scene. If a foreign object from a different compression history is spliced in, its 8×8 blocks are no longer at a local quantization minimum and light up brightly in the Sobel-normalized residual map.",
+      "Every JPEG image partitions the frame into non-overlapping 8×8 pixel blocks and quantizes their 2D Discrete Cosine Transform (DCT) coefficients. Re-compressing an unmodified JPEG at quality Q produces a uniform quantization residual across the scene. Foreign spliced regions originating from a different compression quality sit away from the local quantization minimum and exhibit high Z-score residuals after Sobel edge-energy normalization.",
   },
   {
     num: "02",
-    name: "2D Discrete Wavelet Transform (DWT) & Wiener Noise Variance",
+    name: "2D DISCRETE WAVELET TRANSFORM (DWT) & WIENER NOISE VARIANCE",
     weight: "22%",
     domain: "Daubechies db4 / Haar HH1 Sub-Band + 5×5 Adaptive Wiener Filter",
-    formula: "σ̂_b = median(|HH_{1,b} - median(HH_{1,b})|) / 0.6745",
+    formula: "σ̂_b = median(|HH_{1,b} - median(HH_{1,b})|) / 0.6745,   R_W(x,y) = I(x,y) - Wiener_{5×5}(I(x,y))",
     description:
-      "Every camera sensor leaves an isotropic high-frequency noise floor. PixelProof decomposes the luminance channel via a 2D Discrete Wavelet Transform to isolate the diagonal detail sub-band (HH1) and combines it with a 5×5 Adaptive Wiener denoising residual. After masking out strong structural scene edges, Donoho's Median Absolute Deviation (MAD) estimator computes local noise variance across sliding windows—catching both noisy spliced patches and smooth airbrushed/inpainted regions.",
+      "Imaging sensors leave an isotropic high-frequency noise signature. PixelProof decomposes the luminance channel via a 1-level 2D Discrete Wavelet Transform to extract the diagonal detail sub-band (HH1) and combines it with a 5×5 spatial Adaptive Wiener denoising residual. After masking out the top 15% highest Sobel gradient edges, Donoho's Median Absolute Deviation (MAD) estimator computes local noise variance across sliding windows—catching both noisy spliced patches and smooth airbrushed/inpainted regions.",
   },
   {
     num: "03",
-    name: "Hybrid Copy-Move (Clone) Forgery Detection",
+    name: "HYBRID COPY-MOVE (CLONE) FORGERY DETECTION",
     weight: "22%",
     domain: "16×16 Block 2D-DCT Lexicographical Sort + ORB Keypoints",
-    formula: "s_{ij} = (x_i - x_j, y_i - y_j),   count(s) >= T_cluster",
+    formula: "F(u,v) = α(u)α(v) Σ_x Σ_y f(x,y) cos((2x+1)uπ/2B) cos((2y+1)vπ/2B),   s_ij = p_i - p_j",
     description:
-      "When a forger copies a region from within the same image to duplicate or hide an object, ELA and noise analysis see identical compression and sensor noise. Layer 3 slides a 16×16 window across the image, extracts quantized low-frequency 2D-DCT coefficients, and lexicographically sorts the rows so identical patches become adjacent in O(N log N) time. Parallel shift vectors (Δx, Δy) are clustered alongside ORB keypoint matches to link source and cloned regions.",
+      "Internal copy-move clones share the exact same camera sensor noise, illumination, and JPEG compression history as the background. Layer 3 slides an overlapping 16×16 window across the image, extracts quantized low-frequency 2D-DCT coefficients, and lexicographically sorts the feature rows so identical patches become adjacent in O(N log N) time. Parallel shift vectors (Δx, Δy) are accumulated in a 2D displacement histogram alongside ORB binary keypoint matches.",
   },
   {
     num: "04",
-    name: "Resampling & 2D-FFT Spectral Periodicity",
+    name: "RESAMPLING & 2D-FFT SPECTRAL PERIODICITY",
     weight: "14%",
     domain: "3×3 Isotropic Laplacian Derivative + Hanning 2D-FFT",
-    formula: "M(u,v) = log(1 + | FFT2( ∇²I(x,y) · w(x,y) ) |)",
+    formula: "∇²f(x,y) = f(x+1,y)+f(x-1,y)+f(x,y+1)+f(x,y-1)-4f(x,y),   M(u,v) = log(1 + |FFT2(∇²f · w)|)",
     description:
-      "Spliced objects are almost always resized, rotated, or skewed to fit the target perspective. Bilinear and bicubic interpolation introduce periodic linear correlations between neighboring pixels. Convolving the image with a 2nd-order Laplacian high-pass operator exposes these correlations, which manifest as distinct secondary high-frequency peaks in the 2D Fast Fourier Transform (2D-FFT) magnitude spectrum.",
+      "When a spliced object is scaled or rotated, bilinear and bicubic interpolation introduce periodic linear correlations between neighboring pixels. Convolving the luminance channel with an isotropic 2nd-order Laplacian high-pass kernel suppresses low-frequency scene structure and exposes these periodic correlations as distinct high-frequency peaks in the 2D Fast Fourier Transform (2D-FFT) log-magnitude spectrum.",
   },
   {
     num: "05",
-    name: "Double JPEG Quantization & 8×8 Blocking Artifact Grid (BAG)",
+    name: "DOUBLE JPEG QUANTIZATION & 8×8 BLOCKING ARTIFACT GRID (BAG)",
     weight: "10%",
     domain: "AC(0,1)/AC(1,0) DCT Comb Histograms & Grid Phase (mod 8)",
-    formula: "Δ_x(x,y) = | 2I(x,y) - I(x-1,y) - I(x+1,y) |",
+    formula: "Q_{12}(c) = round( round(c / q_1) · q_1 / q_2 ),   Δ_x(x,y) = |2I(x,y) - I(x-1,y) - I(x+1,y)|",
     description:
-      "Standard JPEG compression introduces subtle discontinuities along 8×8 block boundaries (x ≡ 0 mod 8, y ≡ 0 mod 8). When a region is cropped or pasted at coordinates not divisible by 8, its local 8×8 blocking grid shifts out of phase with the background grid. Simultaneously, double quantization (Q1 → Q2) produces periodic comb-filter zero-bins in the AC DCT coefficient histograms.",
+      "Independent 8×8 block DCT quantization creates subtle pixel discontinuities along coordinates x ≡ 0 (mod 8) and y ≡ 0 (mod 8). When a region is cropped or spliced at coordinates not divisible by 8, its internal 8×8 blocking grid shifts out of phase with the background grid. Simultaneously, double quantization (Q1 → Q2) produces periodic comb-filter zero-bins in the AC DCT coefficient histograms.",
   },
   {
     num: "06",
-    name: "Lateral Chromatic Aberration & Scharr Edge Consistency",
+    name: "LATERAL CHROMATIC ABERRATION & SCHARR EDGE CONSISTENCY",
     weight: "12%",
     domain: "3×3 Rotational-Symmetric Scharr R/G/B Gradients",
-    formula: "D_chroma(x,y) = 0.5(|∇R - ∇G| + |∇B - ∇G|) + (1 - |cos θ_RB|)",
+    formula: "G_c = [K_x * I_c, K_y * I_c]^T,   D_chroma(x,y) = 0.5(||G_R|| - ||G_G||) + (1 - |G_R · G_B| / (||G_R|| ||G_B||))",
     description:
-      "Real camera optics refract Red, Green, and Blue wavelengths with consistent directional collinearity. Composited objects and selection masks create abrupt inter-channel gradient magnitude divergences and angular misalignments along the splice boundary, captured via 3×3 rotational-symmetric Scharr operators.",
+      "Physical camera lenses refract Red, Green, and Blue wavelengths with consistent directional collinearity. Composited objects and selection masks introduce abrupt inter-channel gradient magnitude divergences and vector misalignments along the splice boundary, measured via 3×3 rotational-symmetric Scharr operators.",
   },
   {
     num: "07",
-    name: "EXIF Metadata & 8×8 Luminance DQT Fingerprinting",
+    name: "EXIF METADATA & 8×8 LUMINANCE DQT FINGERPRINTING",
     weight: "8%",
     domain: "JPEG Annex-K Quantization Matrix & Container Headers",
-    formula: "Q_IJG(u,v) = clip( floor((S(Q)·Q_base(u,v) + 50) / 100), 1, 255 )",
+    formula: "Q_IJG(u,v) = clip( floor((S(Q) · Q_base(u,v) + 50) / 100), 1, 255 )",
     description:
-      "Inspects EXIF tags for explicit editing software signatures (Adobe Photoshop, GIMP, Lightroom, Canva) and extracts the 64-element Luminance Quantization Table (DQT) from the JPEG header, comparing the divisors against standard IJG quality curves.",
+      "Parses EXIF headers for explicit editing software signatures (Adobe Photoshop, GIMP, Lightroom, Canva) and extracts the 64-element Luminance Quantization Table (DQT) from the JPEG stream, comparing its divisors against standard IJG quality curves.",
   },
 ];
 
 export default function HowItWorksPage() {
   return (
-    <div className="mx-auto max-w-5xl px-4 space-y-16">
-      {/* Header */}
-      <section className="text-center pt-4">
-        <div className="inline-flex items-center gap-2 rounded-full border border-cyan-500/30 bg-cyan-500/10 px-4 py-1 text-xs font-mono uppercase tracking-widest text-cyan-300 mb-4">
-          <Sigma className="h-3.5 w-3.5" />
-          <span>Signal Processing &amp; Mathematical Architecture</span>
-        </div>
-        <h1 className="text-4xl sm:text-5xl font-black text-white tracking-tight">
-          How PixelProof Works
-        </h1>
-        <p className="mx-auto mt-4 max-w-2xl text-sm sm:text-base text-slate-400 leading-relaxed">
-          Every uploaded image passes through 7 orthogonal Digital Image Processing (DIP) stages
-          followed by Otsu adaptive thresholding and Morphological Opening/Closing to localize
-          tampered regions without a single black-box neural network.
-        </p>
-      </section>
+    <div className="min-h-screen flex flex-col overflow-x-hidden">
+      <Navbar />
 
-      {/* 7 Layers Breakdown */}
-      <section className="space-y-5">
-        {PIPELINE_STEPS.map((step) => (
-          <div
-            key={step.num}
-            className="rounded-2xl border border-slate-800/90 bg-[#0B0F17] p-6 sm:p-7 flex flex-col md:flex-row gap-6 items-start"
-          >
-            <div className="font-mono text-4xl sm:text-5xl font-black text-cyan-400/30 shrink-0">
-              {step.num}
-            </div>
+      <main className="flex-1 max-w-[1400px] w-full mx-auto px-3 sm:px-6 lg:px-8">
+        {/* Header */}
+        <section className="border-x border-b border-[#222220] bg-[#0e0e0e] p-5 sm:p-8 lg:p-10">
+          <div className="font-mono text-[10px] sm:text-[11px] uppercase tracking-widest text-[#00e5ff] mb-2">
+            {"// [04] SIGNAL PROCESSING & MATHEMATICAL SPECIFICATION"}
+          </div>
+          <h1 className="font-display font-black text-4xl sm:text-6xl uppercase tracking-tight text-[#f2efe9]">
+            SEVEN CLASSICAL DIP PIPELINES. EXPLAINABLE TO THE PIXEL.
+          </h1>
+          <p className="text-xs sm:text-base text-[#88857e] mt-3 max-w-3xl leading-relaxed">
+            Every uploaded image is evaluated across 7 orthogonal spatial and frequency domains,
+            followed by Otsu adaptive thresholding, elliptical Morphological Opening/Closing, and
+            8-connected component labeling.
+          </p>
+        </section>
 
-            <div className="flex-1 space-y-3">
-              <div className="flex flex-wrap items-center justify-between gap-2">
-                <div>
-                  <div className="font-mono text-xs text-cyan-400">{step.domain}</div>
-                  <h2 className="text-lg sm:text-xl font-bold text-white mt-0.5">
-                    {step.name}
-                  </h2>
-                </div>
-                <span className="rounded-full border border-cyan-500/30 bg-cyan-500/10 px-3 py-1 font-mono text-xs font-bold text-cyan-300">
-                  Fusion Weight: {step.weight}
+        {/* 7 Layers List */}
+        <section className="border-x border-b border-[#222220] divide-y divide-[#222220]">
+          {PIPELINE_STEPS.map((step) => (
+            <div
+              key={step.num}
+              className="p-5 sm:p-8 grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-6 items-start bg-[#080808] hover:bg-[#0b0b0b] transition-colors"
+            >
+              <div className="lg:col-span-2 flex lg:flex-col items-baseline lg:items-start justify-between gap-2">
+                <span className="font-display font-black text-5xl sm:text-6xl text-[#00e5ff] leading-none">
+                  L{step.num}
+                </span>
+                <span className="border border-[#00e5ff] bg-[#00e5ff]/10 px-2 py-0.5 font-mono text-[10px] font-bold text-[#00e5ff]">
+                  WEIGHT: {step.weight}
                 </span>
               </div>
 
-              <div className="rounded-lg border border-slate-800 bg-[#06090F] px-4 py-2.5 font-mono text-xs text-emerald-300 overflow-x-auto">
-                {step.formula}
+              <div className="lg:col-span-10 space-y-3 min-w-0">
+                <div className="font-mono text-[11px] text-[#00e5ff] uppercase tracking-wider">
+                  {step.domain}
+                </div>
+                <h2 className="font-display font-black text-2xl sm:text-3xl uppercase text-[#f2efe9]">
+                  {step.name}
+                </h2>
+                <div className="border border-[#222220] bg-[#0e0e0e] p-3 font-mono text-xs text-[#00e676] overflow-x-auto">
+                  {step.formula}
+                </div>
+                <p className="text-xs sm:text-sm text-[#88857e] leading-relaxed">
+                  {step.description}
+                </p>
               </div>
+            </div>
+          ))}
+        </section>
 
-              <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">
-                {step.description}
+        {/* Stage 08: Morphological Fusion */}
+        <section className="border-x border-b border-[#222220] bg-[#0e0e0e] p-5 sm:p-8 lg:p-10 space-y-6">
+          <div>
+            <div className="font-mono text-[11px] text-[#00e5ff] uppercase tracking-widest mb-1">
+              {"// STAGE 08 · COMPOSITE FUSION & MORPHOLOGICAL SEGMENTATION"}
+            </div>
+            <h2 className="font-display font-black text-3xl sm:text-4xl uppercase text-[#f2efe9]">
+              OTSU THRESHOLDING + MORPHOLOGICAL OPENING/CLOSING + 8-CONNECTIVITY
+            </h2>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 border border-[#222220] divide-y md:divide-y-0 md:divide-x divide-[#222220] bg-[#080808] font-mono text-xs">
+            <div className="p-5">
+              <div className="text-[#00e5ff] font-bold mb-2">[01] OTSU ADAPTIVE THRESHOLD</div>
+              <p className="text-[#88857e] font-sans text-xs leading-relaxed">
+                Maximizes between-class variance <code className="text-[#f2efe9]">σ²_B(t*)</code>{" "}
+                bounded by an 88th-percentile floor so unmodified images do not false-segment.
+              </p>
+            </div>
+            <div className="p-5">
+              <div className="text-[#00e5ff] font-bold mb-2">
+                [02] MORPHOLOGICAL OPEN &amp; CLOSE
+              </div>
+              <p className="text-[#88857e] font-sans text-xs leading-relaxed">
+                Applies elliptical Opening <code className="text-[#f2efe9]">(M ⊖ B₁) ⊕ B₁</code> to
+                remove isolated salt noise and Closing{" "}
+                <code className="text-[#f2efe9]">(M ⊕ B₂) ⊖ B₂</code> to bridge fragmented masks.
+              </p>
+            </div>
+            <div className="p-5">
+              <div className="text-[#00e5ff] font-bold mb-2">
+                [03] 8-CONNECTED COMPONENT BBOXES
+              </div>
+              <p className="text-[#88857e] font-sans text-xs leading-relaxed">
+                Extracts contiguous bounding boxes <code className="text-[#f2efe9]">[x, y, w, h]</code>{" "}
+                and attributes each suspect zone to the DIP layer with peak local activation.
               </p>
             </div>
           </div>
-        ))}
-      </section>
 
-      {/* Morphological Fusion & Scoring */}
-      <section className="rounded-2xl border border-slate-800 bg-[#0B0F17] p-7 space-y-5">
-        <div className="font-mono text-xs uppercase tracking-widest text-cyan-400">
-          Stage 08 &middot; Composite Localization &amp; Verdict Scoring
-        </div>
-        <h2 className="text-2xl font-extrabold text-white">
-          Otsu Thresholding, Morphological Filtering &amp; 8-Connectivity
-        </h2>
-        <p className="text-sm text-slate-300 leading-relaxed">
-          Once all spatial anomaly maps are normalized to <code className="text-cyan-300">[0, 255]</code>,
-          PixelProof computes a weighted spatial fusion map boosted by the top two highest-scoring
-          layers. To convert the continuous heatmap into crisp region bounding boxes:
-        </p>
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 pt-2">
+            <div className="flex flex-wrap gap-2 font-mono text-xs">
+              <span className="border border-[#00e676] bg-[#00e676]/10 px-3 py-1.5 text-[#00e676] font-bold">
+                0–32 // AUTHENTIC
+              </span>
+              <span className="border border-[#ffb300] bg-[#ffb300]/10 px-3 py-1.5 text-[#ffb300] font-bold">
+                33–51 // SUSPICIOUS
+              </span>
+              <span className="border border-[#ff2a2a] bg-[#ff2a2a]/10 px-3 py-1.5 text-[#ff2a2a] font-bold">
+                52–100 // TAMPERED
+              </span>
+            </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
-          <div className="rounded-xl border border-slate-800 bg-[#070A10] p-4">
-            <div className="font-mono font-bold text-cyan-400 mb-1">
-              1. Otsu Adaptive Threshold
-            </div>
-            <p className="text-slate-400 leading-relaxed">
-              Maximizes between-class variance <code className="text-slate-200">σ²_B(t*)</code> bounded
-              by an 88th-percentile floor to segment high-anomaly pixels.
-            </p>
-          </div>
-          <div className="rounded-xl border border-slate-800 bg-[#070A10] p-4">
-            <div className="font-mono font-bold text-cyan-400 mb-1">
-              2. Morphological Open &amp; Close
-            </div>
-            <p className="text-slate-400 leading-relaxed">
-              Applies elliptical Opening <code className="text-slate-200">(M ⊖ B₁) ⊕ B₁</code> to
-              erase isolated salt noise and Closing <code className="text-slate-200">(M ⊕ B₂) ⊖ B₂</code>{" "}
-              to bridge fragmented regions.
-            </p>
-          </div>
-          <div className="rounded-xl border border-slate-800 bg-[#070A10] p-4">
-            <div className="font-mono font-bold text-cyan-400 mb-1">
-              3. Connected Components
-            </div>
-            <p className="text-slate-400 leading-relaxed">
-              Runs 8-connectivity labeling to extract bounding boxes <code className="text-slate-200">[x, y, w, h]</code>{" "}
-              and attributes each box to its primary DIP trigger.
-            </p>
-          </div>
-        </div>
-
-        {/* Verdict Threshold Bar */}
-        <div className="pt-2">
-          <div className="h-10 rounded-xl overflow-hidden flex font-mono text-xs font-bold">
-            <div className="flex-1 flex items-center justify-center bg-emerald-500/20 text-emerald-300 border-r border-slate-800">
-              0 – 32 &middot; AUTHENTIC
-            </div>
-            <div className="flex-1 flex items-center justify-center bg-amber-500/20 text-amber-300 border-r border-slate-800">
-              33 – 51 &middot; SUSPICIOUS
-            </div>
-            <div className="flex-1 flex items-center justify-center bg-rose-500/20 text-rose-300">
-              52 – 100 &middot; TAMPERED
+            <div className="flex flex-wrap gap-3">
+              <Link href="/demo" className="brutal-btn">
+                LAUNCH DEMO SUITE →
+              </Link>
+              <Link href="/analyze" className="brutal-btn brutal-btn-primary">
+                ANALYZE CUSTOM IMAGE →
+              </Link>
             </div>
           </div>
-        </div>
-      </section>
+        </section>
+      </main>
 
-      {/* Bottom CTAs */}
-      <section className="flex flex-wrap items-center justify-center gap-4 pb-6">
-        <Link
-          href="/analyze"
-          className="flex items-center gap-2 rounded-xl bg-cyan-400 px-6 py-3 text-xs font-bold uppercase tracking-wider text-slate-950 hover:bg-cyan-300 transition"
-        >
-          <Upload className="h-4 w-4" />
-          <span>Analyze Your Own Image</span>
-          <ArrowRight className="h-4 w-4" />
-        </Link>
-        <Link
-          href="/demo"
-          className="flex items-center gap-2 rounded-xl border border-slate-700 bg-[#0B0F17] px-6 py-3 text-xs font-bold uppercase tracking-wider text-slate-200 hover:border-cyan-400 transition"
-        >
-          <Sparkles className="h-4 w-4 text-cyan-400" />
-          <span>Try Interactive Demo &amp; Sandbox</span>
-        </Link>
-      </section>
+      <Footer />
     </div>
   );
 }

@@ -2,14 +2,8 @@
 
 import React, { useRef, useState } from "react";
 import Link from "next/link";
-import {
-  FileImage,
-  FolderOpen,
-  RotateCcw,
-  Scan,
-  Sparkles,
-  Upload,
-} from "lucide-react";
+import Footer from "@/components/Footer";
+import Navbar from "@/components/Navbar";
 import DipMathDrawer from "@/components/workbench/DipMathDrawer";
 import ImageStage from "@/components/workbench/ImageStage";
 import LayerSelector from "@/components/workbench/LayerSelector";
@@ -43,7 +37,7 @@ export default function AnalyzePage() {
 
   const processFile = async (file: File) => {
     if (!file.type.startsWith("image/")) {
-      setErrorMsg("Please select a valid image file (JPEG, PNG, WebP, or BMP).");
+      setErrorMsg("UNSUPPORTED FORMAT // Please select a valid JPEG, PNG, WebP, or BMP image.");
       return;
     }
     setErrorMsg(null);
@@ -57,7 +51,7 @@ export default function AnalyzePage() {
       setReport(nextReport);
       setEngineMode(rMode);
     } catch {
-      setErrorMsg("Failed to analyze image. Please try another file.");
+      setErrorMsg("PIPELINE ERROR // Failed to decode image buffer. Please try another file.");
     } finally {
       setIsLoading(false);
     }
@@ -99,168 +93,185 @@ export default function AnalyzePage() {
     report?.layers.find((l) => l.id === activeLayerId) || report?.layers[0];
 
   return (
-    <div className="mx-auto max-w-[1400px] px-4 space-y-6">
-      {/* Top Bar */}
-      <div className="flex flex-wrap items-center justify-between gap-4 border-b border-slate-800/80 pb-5">
-        <div>
-          <div className="font-mono text-xs uppercase tracking-widest text-cyan-400">
-            Custom Forensic Audit Workspace
+    <div className="min-h-screen flex flex-col overflow-x-hidden">
+      <Navbar />
+
+      <main className="flex-1 max-w-[1400px] w-full mx-auto px-3 sm:px-6 lg:px-8 space-y-6">
+        {/* Top Header */}
+        <section className="border-x border-b border-[#222220] bg-[#0e0e0e] p-5 sm:p-7 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <div className="font-mono text-[10px] sm:text-[11px] uppercase tracking-widest text-[#00e5ff] mb-1">
+              {"// [03] CUSTOM FORENSIC AUDIT WORKSPACE"}
+            </div>
+            <h1 className="font-display font-black text-3xl sm:text-5xl uppercase tracking-tight text-[#f2efe9]">
+              ANALYZE YOUR OWN IMAGE
+            </h1>
+            <p className="text-xs sm:text-sm text-[#88857e] mt-1">
+              Upload any suspect JPEG, PNG, WebP, or BMP file for a full 7-layer Digital Image
+              Processing audit. Stateless in-memory execution.
+            </p>
           </div>
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-white mt-1">
-            Analyze Your Own Image
-          </h1>
-          <p className="text-xs sm:text-sm text-slate-400 mt-1">
-            Upload any JPEG, PNG, WebP, or BMP file to run all 7 Digital Image Processing
-            forensic layers and localize tampered regions.
-          </p>
-        </div>
 
-        <div className="flex items-center gap-2.5">
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept="image/jpeg,image/png,image/webp,image/bmp"
-            className="hidden"
-            onChange={(e) => {
-              const f = e.target.files?.[0];
-              if (f) processFile(f);
-            }}
-          />
+          <div className="flex flex-wrap items-center gap-2.5 shrink-0">
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/jpeg,image/png,image/webp,image/bmp"
+              className="hidden"
+              onChange={(e) => {
+                const f = e.target.files?.[0];
+                if (f) processFile(f);
+              }}
+            />
 
-          {report && (
+            {report && (
+              <button
+                type="button"
+                onClick={() => {
+                  setReport(null);
+                  setUploadedFile(null);
+                }}
+                className="brutal-btn"
+              >
+                CLEAR WORKSPACE
+              </button>
+            )}
+
             <button
               type="button"
-              onClick={() => {
-                setReport(null);
-                setUploadedFile(null);
-              }}
-              className="flex items-center gap-1.5 rounded-xl border border-slate-700 bg-slate-900 px-4 py-2.5 text-xs font-semibold text-slate-300 hover:text-white transition cursor-pointer"
+              onClick={() => fileInputRef.current?.click()}
+              className="brutal-btn brutal-btn-primary"
             >
-              <RotateCcw className="h-3.5 w-3.5" />
-              <span>Clear &amp; New Upload</span>
+              {report ? "UPLOAD ANOTHER IMAGE →" : "SELECT IMAGE FILE →"}
             </button>
-          )}
-
-          <button
-            type="button"
-            onClick={() => fileInputRef.current?.click()}
-            className="flex items-center gap-2 rounded-xl bg-cyan-400 px-5 py-2.5 text-xs font-bold uppercase tracking-wider text-slate-950 shadow-lg hover:bg-cyan-300 transition cursor-pointer"
-          >
-            <Upload className="h-4 w-4" />
-            <span>{report ? "Upload Another Image" : "Select Image File"}</span>
-          </button>
-        </div>
-      </div>
-
-      {errorMsg && (
-        <div className="rounded-xl border border-rose-500/40 bg-rose-950/30 px-4 py-3 text-xs text-rose-300">
-          {errorMsg}
-        </div>
-      )}
-
-      {/* STATE 1: NO IMAGE UPLOADED YET -> DEDICATED DROPZONE */}
-      {!report && !isLoading && (
-        <div className="py-6">
-          <div
-            onDragOver={(e) => {
-              e.preventDefault();
-              setIsDragging(true);
-            }}
-            onDragLeave={() => setIsDragging(false)}
-            onDrop={handleDrop}
-            onClick={() => fileInputRef.current?.click()}
-            className={`mx-auto max-w-3xl cursor-pointer rounded-2xl border-2 border-dashed p-12 sm:p-16 text-center transition ${
-              isDragging
-                ? "border-cyan-400 bg-cyan-500/10 shadow-[0_0_40px_rgba(6,182,212,0.2)]"
-                : "border-slate-700/80 bg-[#0B0F17] hover:border-cyan-400/60 hover:bg-[#0D131F]"
-            }`}
-          >
-            <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-2xl border border-cyan-500/30 bg-cyan-500/10 text-cyan-400">
-              <FileImage className="h-8 w-8" />
-            </div>
-
-            <h2 className="text-xl sm:text-2xl font-bold text-white">
-              Drag &amp; Drop an Image Here, or Click to Browse
-            </h2>
-            <p className="mx-auto mt-2 max-w-md text-xs sm:text-sm text-slate-400">
-              Supports <strong className="text-slate-200">JPEG, PNG, WebP, and BMP</strong> up to
-              15 MB. Processed entirely in memory — zero server storage.
-            </p>
-
-            <div className="mt-7 inline-flex items-center gap-2 rounded-xl bg-cyan-400 px-6 py-3 text-xs font-bold uppercase tracking-wider text-slate-950 shadow-lg">
-              <FolderOpen className="h-4 w-4" />
-              <span>Choose File from Device</span>
-            </div>
-
-            <div className="mt-8 border-t border-slate-800/80 pt-6 flex flex-wrap items-center justify-center gap-6 text-xs text-slate-400">
-              <span>&bull; Layer 1: YCbCr ELA &amp; Ghosts</span>
-              <span>&bull; Layer 2: DWT HH1 &amp; Wiener Noise</span>
-              <span>&bull; Layer 3: DCT + ORB Copy-Move</span>
-              <span>&bull; Layer 4: 2D-FFT Resampling</span>
-            </div>
           </div>
+        </section>
 
-          <div className="mt-6 text-center">
-            <Link
-              href="/demo"
-              className="inline-flex items-center gap-1.5 text-xs font-mono text-cyan-400 hover:text-cyan-300"
+        {errorMsg && (
+          <div className="border border-[#ff2a2a] bg-[#ff2a2a]/10 p-4 font-mono text-xs text-[#ff2a2a]">
+            {errorMsg}
+          </div>
+        )}
+
+        {/* STATE 1: NO FILE UPLOADED YET -> INDUSTRIAL DROPZONE */}
+        {!report && !isLoading && (
+          <section className="grid grid-cols-1 lg:grid-cols-12 border border-[#222220] bg-[#0e0e0e]">
+            <div
+              onDragOver={(e) => {
+                e.preventDefault();
+                setIsDragging(true);
+              }}
+              onDragLeave={() => setIsDragging(false)}
+              onDrop={handleDrop}
+              onClick={() => fileInputRef.current?.click()}
+              className={`lg:col-span-8 p-8 sm:p-14 border-b lg:border-b-0 lg:border-r border-[#222220] flex flex-col items-center justify-center text-center cursor-pointer transition-colors ${
+                isDragging ? "bg-[#151515] border-[#00e5ff]" : "hover:bg-[#111111]"
+              }`}
             >
-              <Sparkles className="h-3.5 w-3.5" />
-              <span>Don&apos;t have a tampered image handy? Try our 6 pre-built Demo Cases &amp; Sandbox &rarr;</span>
-            </Link>
+              <div className="w-14 h-14 border-2 border-[#00e5ff] bg-[#080808] flex items-center justify-center font-mono font-bold text-lg text-[#00e5ff] mb-5">
+                RAW
+              </div>
+
+              <h2 className="font-display font-black text-3xl sm:text-4xl uppercase text-[#f2efe9]">
+                DROP IMAGE FILE HERE OR CLICK TO BROWSE
+              </h2>
+              <p className="font-mono text-xs text-[#88857e] mt-2 max-w-md">
+                ACCEPTED CONTAINERS: JPEG · PNG · WEBP · BMP (MAX 15 MB)
+              </p>
+
+              <div className="mt-7">
+                <span className="brutal-btn brutal-btn-primary">
+                  CHOOSE IMAGE FROM DEVICE →
+                </span>
+              </div>
+            </div>
+
+            <div className="lg:col-span-4 bg-[#0b0b0b] p-6 sm:p-8 flex flex-col justify-between font-mono text-xs">
+              <div className="space-y-4">
+                <div className="text-[11px] text-[#00e5ff] font-bold uppercase tracking-wider">
+                  {"// PIPELINE EXECUTION MANIFEST"}
+                </div>
+                <div className="space-y-2 text-[11px] text-[#88857e]">
+                  <div className="border border-[#222220] bg-[#111111] p-2.5">
+                    <strong className="text-[#f2efe9]">[L1] YCbCr ELA &amp; Ghosts:</strong>{" "}
+                    8&times;8 DCT quantization error sweep
+                  </div>
+                  <div className="border border-[#222220] bg-[#111111] p-2.5">
+                    <strong className="text-[#f2efe9]">[L2] Wavelet &amp; Wiener:</strong>{" "}
+                    Daubechies db4 HH1 MAD sensor noise
+                  </div>
+                  <div className="border border-[#222220] bg-[#111111] p-2.5">
+                    <strong className="text-[#f2efe9]">[L3] Copy-Move Clones:</strong>{" "}
+                    16&times;16 Block-DCT lexsort + ORB vectors
+                  </div>
+                  <div className="border border-[#222220] bg-[#111111] p-2.5">
+                    <strong className="text-[#f2efe9]">[L4..L7] FFT, BAG, Scharr, DQT:</strong>{" "}
+                    Resampling spectrum &amp; DQT matrix
+                  </div>
+                </div>
+              </div>
+
+              <div className="pt-6 border-t border-[#222220] mt-6">
+                <div className="text-[11px] text-[#88857e] mb-2">
+                  Want to test pre-built forgeries or create one in the browser first?
+                </div>
+                <Link href="/demo" className="text-[#00e5ff] font-bold hover:underline">
+                  LAUNCH BENCHMARK DEMO &amp; SANDBOX →
+                </Link>
+              </div>
+            </div>
+          </section>
+        )}
+
+        {/* STATE 2: EXECUTING PIPELINE */}
+        {isLoading && (
+          <div className="panel-frame p-8 sm:p-12 font-mono text-xs space-y-4">
+            <div className="text-[#00e5ff] font-bold uppercase tracking-widest">
+              ● EXECUTING 7-LAYER DIGITAL IMAGE PROCESSING PIPELINE...
+            </div>
+            <div className="space-y-2 text-[#88857e]">
+              <div>[01/07] Converting RGB → ITU-R BT.601 YCbCr &amp; computing Multi-Quality ELA...</div>
+              <div>[02/07] Decomposing 2D-DWT ({params.wavelet_family.toUpperCase()}) HH1 &amp; 5×5 Adaptive Wiener residual...</div>
+              <div>[03/07] Lexicographically sorting 16×16 2D-DCT blocks &amp; ORB keypoints...</div>
+              <div>[04/07] Computing 3×3 Laplacian &amp; Hanning-windowed 2D-FFT log spectrum...</div>
+              <div>[05/07] Segmenting Otsu threshold &amp; Morphological Opening/Closing mask...</div>
+            </div>
           </div>
-        </div>
-      )}
+        )}
 
-      {/* STATE 2: LOADING PIPELINE */}
-      {isLoading && (
-        <div className="mx-auto max-w-2xl rounded-2xl border border-slate-800 bg-[#0B0F17] p-10 text-center space-y-4">
-          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-xl border border-cyan-500/40 bg-cyan-500/10 text-cyan-400 animate-pulse">
-            <Scan className="h-6 w-6" />
+        {/* STATE 3: FULL FORENSIC WORKBENCH */}
+        {report && !isLoading && (
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
+            <div className="lg:col-span-8 space-y-5 min-w-0">
+              <ImageStage report={report} activeLayer={activeLayerObj} />
+
+              <LayerSelector
+                report={report}
+                activeLayerId={activeLayerId}
+                onSelectLayer={setActiveLayerId}
+              />
+
+              {mathDrawerLayer && <DipMathDrawer layer={mathDrawerLayer} />}
+            </div>
+
+            <div className="lg:col-span-4 space-y-5 min-w-0">
+              <VerdictCard report={report} engineMode={engineMode} />
+
+              <ParameterPanel
+                params={params}
+                onChange={setParams}
+                onReanalyze={handleReanalyze}
+                onReset={() => setParams(DEFAULT_PARAMS)}
+                isLoading={isLoading}
+              />
+
+              <MetadataTable metadata={report.metadata} />
+            </div>
           </div>
-          <h3 className="text-lg font-bold text-white">
-            Executing 7-Layer Digital Image Processing Pipeline...
-          </h3>
-          <div className="mx-auto max-w-md space-y-1.5 text-left font-mono text-xs text-slate-400">
-            <div>[1/7] Computing ITU-R BT.601 YCbCr Error Level Analysis &amp; JPEG Ghosts...</div>
-            <div>[2/7] Decomposing 2D-DWT ({params.wavelet_family.toUpperCase()}) HH1 &amp; Adaptive Wiener Residual...</div>
-            <div>[3/7] Lexicographically sorting 16&times;16 2D-DCT blocks &amp; ORB keypoints...</div>
-            <div>[4/7] Running 2nd-order Laplacian &amp; 2D-FFT spectral periodicity...</div>
-            <div>[5/7] Segmenting Otsu threshold &amp; Morphological Opening/Closing mask...</div>
-          </div>
-        </div>
-      )}
+        )}
+      </main>
 
-      {/* STATE 3: FULL FORENSIC WORKBENCH RESULTS */}
-      {report && !isLoading && (
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-start">
-          <div className="lg:col-span-8 space-y-4">
-            <ImageStage report={report} activeLayer={activeLayerObj} />
-
-            <LayerSelector
-              report={report}
-              activeLayerId={activeLayerId}
-              onSelectLayer={setActiveLayerId}
-            />
-
-            {mathDrawerLayer && <DipMathDrawer layer={mathDrawerLayer} />}
-          </div>
-
-          <div className="lg:col-span-4 space-y-4">
-            <VerdictCard report={report} engineMode={engineMode} />
-
-            <ParameterPanel
-              params={params}
-              onChange={setParams}
-              onReanalyze={handleReanalyze}
-              onReset={() => setParams(DEFAULT_PARAMS)}
-              isLoading={isLoading}
-            />
-
-            <MetadataTable metadata={report.metadata} />
-          </div>
-        </div>
-      )}
+      <Footer />
     </div>
   );
 }

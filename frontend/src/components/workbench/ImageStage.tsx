@@ -1,15 +1,6 @@
 "use client";
 
 import React, { useRef, useState } from "react";
-import {
-  Columns,
-  Eye,
-  Grid,
-  Layers,
-  Maximize2,
-  ScanLine,
-  Search,
-} from "lucide-react";
 import { BoundingBox, CloneVector, ForensicReport, LayerResult } from "@/lib/types";
 
 interface ImageStageProps {
@@ -40,12 +31,12 @@ export default function ImageStage({ report, activeLayer }: ImageStageProps) {
 
   const activeTitle =
     activeLayer === "composite"
-      ? "Multi-Layer Morphological Composite Fusion"
+      ? "COMPOSITE_FUSION // 7-LAYER WEIGHTED MAP"
       : activeLayer === "mask"
-      ? "Otsu + Morphological Opening/Closing Binary Mask"
+      ? "OTSU_MORPHOLOGY // (M ⊖ B₁) ⊕ B₂ BINARY MASK"
       : activeLayer === "annotated"
-      ? "Connected Component Tamper Localization Overlay"
-      : activeLayer.name;
+      ? "CONNECTED_COMPONENTS // 8-CONNECTIVITY BBOX OVERLAY"
+      : `${activeLayer.id.toUpperCase()} // ${activeLayer.name.toUpperCase()}`;
 
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
     if (!stageRef.current) return;
@@ -66,149 +57,107 @@ export default function ImageStage({ report, activeLayer }: ImageStageProps) {
   const dctPhaseY = pixelY % 8;
 
   return (
-    <div className="rounded-xl border border-slate-800/90 bg-[#0B0F17] overflow-hidden shadow-2xl">
-      {/* Top Toolbar */}
-      <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-800/80 bg-[#070A10] px-4 py-2.5">
-        <div className="flex items-center gap-2">
-          <ScanLine className="h-4 w-4 text-cyan-400" />
-          <span className="text-xs font-semibold uppercase tracking-wider text-slate-200">
-            {activeTitle}
-          </span>
-          <span className="hidden sm:inline-block rounded bg-slate-800/90 px-2 py-0.5 font-mono text-[11px] text-cyan-300">
-            {report.image_width} &times; {report.image_height} px
+    <div className="panel-frame">
+      {/* Top Hardware Header */}
+      <div className="panel-header">
+        <div className="flex items-center gap-2 min-w-0">
+          <span className="w-2 h-2 bg-[#00e5ff] shrink-0" />
+          <span className="text-[#f2efe9] font-bold truncate">{activeTitle}</span>
+          <span className="hidden sm:inline text-[#88857e]">
+            [{report.image_width}&times;{report.image_height}PX]
           </span>
         </div>
 
         <div className="flex flex-wrap items-center gap-1.5">
-          {/* View mode pills */}
-          <div className="flex rounded-lg border border-slate-800 bg-slate-950 p-0.5 text-xs">
-            <button
-              type="button"
-              onClick={() => setViewMode("split")}
-              className={`flex items-center gap-1 rounded-md px-2.5 py-1 font-medium transition ${
-                viewMode === "split"
-                  ? "bg-cyan-500/20 text-cyan-300 border border-cyan-500/40"
-                  : "text-slate-400 hover:text-slate-200"
-              }`}
-            >
-              <Columns className="h-3.5 w-3.5" />
-              Split
-            </button>
-            <button
-              type="button"
-              onClick={() => setViewMode("heatmap")}
-              className={`flex items-center gap-1 rounded-md px-2.5 py-1 font-medium transition ${
-                viewMode === "heatmap"
-                  ? "bg-cyan-500/20 text-cyan-300 border border-cyan-500/40"
-                  : "text-slate-400 hover:text-slate-200"
-              }`}
-            >
-              <Layers className="h-3.5 w-3.5" />
-              Heatmap
-            </button>
-            <button
-              type="button"
-              onClick={() => setViewMode("blend")}
-              className={`flex items-center gap-1 rounded-md px-2.5 py-1 font-medium transition ${
-                viewMode === "blend"
-                  ? "bg-cyan-500/20 text-cyan-300 border border-cyan-500/40"
-                  : "text-slate-400 hover:text-slate-200"
-              }`}
-            >
-              <Eye className="h-3.5 w-3.5" />
-              Blend
-            </button>
-            <button
-              type="button"
-              onClick={() => setViewMode("original")}
-              className={`flex items-center gap-1 rounded-md px-2.5 py-1 font-medium transition ${
-                viewMode === "original"
-                  ? "bg-cyan-500/20 text-cyan-300 border border-cyan-500/40"
-                  : "text-slate-400 hover:text-slate-200"
-              }`}
-            >
-              <Maximize2 className="h-3.5 w-3.5" />
-              Source
-            </button>
+          {/* View Mode Selector */}
+          <div className="flex border border-[#222220] bg-[#080808]">
+            {(["split", "heatmap", "blend", "original"] as const).map((m) => (
+              <button
+                key={m}
+                type="button"
+                onClick={() => setViewMode(m)}
+                className={`px-2.5 py-1 font-mono text-[10px] uppercase tracking-wider border-r border-[#222220] last:border-r-0 cursor-pointer transition-colors ${
+                  viewMode === m
+                    ? "bg-[#00e5ff] text-[#080808] font-bold"
+                    : "text-[#88857e] hover:text-[#f2efe9]"
+                }`}
+              >
+                {m}
+              </button>
+            ))}
           </div>
 
-          {/* Toggle overlays */}
+          {/* Overlay toggles */}
           <button
             type="button"
             onClick={() => setShowBoxes(!showBoxes)}
-            className={`rounded-md border px-2.5 py-1 text-xs font-medium transition ${
+            className={`px-2 py-1 font-mono text-[10px] border cursor-pointer ${
               showBoxes
-                ? "border-rose-500/50 bg-rose-500/15 text-rose-300"
-                : "border-slate-800 bg-slate-900 text-slate-400"
+                ? "border-[#ff2a2a] bg-[#ff2a2a]/15 text-[#ff2a2a] font-bold"
+                : "border-[#222220] bg-[#080808] text-[#88857e]"
             }`}
-            title="Toggle Connected Component Bounding Boxes"
           >
-            Boxes ({report.bounding_boxes.length})
+            BBOX [{report.bounding_boxes.length}]
           </button>
 
           {report.clone_vectors.length > 0 && (
             <button
               type="button"
               onClick={() => setShowVectors(!showVectors)}
-              className={`rounded-md border px-2.5 py-1 text-xs font-medium transition ${
+              className={`px-2 py-1 font-mono text-[10px] border cursor-pointer ${
                 showVectors
-                  ? "border-emerald-500/50 bg-emerald-500/15 text-emerald-300"
-                  : "border-slate-800 bg-slate-900 text-slate-400"
+                  ? "border-[#00e676] bg-[#00e676]/15 text-[#00e676] font-bold"
+                  : "border-[#222220] bg-[#080808] text-[#88857e]"
               }`}
-              title="Toggle Copy-Move Displacement Vectors"
             >
-              Clones ({report.clone_vectors.length})
+              VECTORS [{report.clone_vectors.length}]
             </button>
           )}
 
           <button
             type="button"
             onClick={() => setShowGrid8x8(!showGrid8x8)}
-            className={`flex items-center gap-1 rounded-md border px-2 py-1 text-xs font-medium transition ${
+            className={`px-2 py-1 font-mono text-[10px] border cursor-pointer ${
               showGrid8x8
-                ? "border-cyan-500/50 bg-cyan-500/15 text-cyan-300"
-                : "border-slate-800 bg-slate-900 text-slate-400"
+                ? "border-[#00e5ff] bg-[#00e5ff]/15 text-[#00e5ff] font-bold"
+                : "border-[#222220] bg-[#080808] text-[#88857e]"
             }`}
-            title="Toggle 8x8 DCT Block Grid Overlay"
           >
-            <Grid className="h-3.5 w-3.5" />
-            8&times;8 Grid
+            8&times;8 DCT
           </button>
 
           <button
             type="button"
             onClick={() => setLoupeActive(!loupeActive)}
-            className={`flex items-center gap-1 rounded-md border px-2 py-1 text-xs font-medium transition ${
+            className={`hidden sm:inline-block px-2 py-1 font-mono text-[10px] border cursor-pointer ${
               loupeActive
-                ? "border-amber-500/50 bg-amber-500/15 text-amber-300"
-                : "border-slate-800 bg-slate-900 text-slate-400"
+                ? "border-[#ffb300] bg-[#ffb300]/15 text-[#ffb300] font-bold"
+                : "border-[#222220] bg-[#080808] text-[#88857e]"
             }`}
-            title="Toggle Synchronized Dual Forensic Loupe"
           >
-            <Search className="h-3.5 w-3.5" />
-            Loupe
+            5&times; LOUPE
           </button>
         </div>
       </div>
 
-      {/* Interactive Stage Container */}
+      {/* Main Optical Viewport */}
       <div
         ref={stageRef}
         onMouseMove={handleMouseMove}
         onMouseLeave={() => setCursorNorm(null)}
-        className="relative select-none bg-[#05070B] flex items-center justify-center overflow-hidden cursor-crosshair"
-        style={{ minHeight: "360px", maxHeight: "540px" }}
+        className="relative select-none bg-[#050505] flex items-center justify-center overflow-hidden cursor-crosshair"
+        style={{ minHeight: "280px", maxHeight: "540px" }}
       >
-        <div className="relative w-full max-w-[720px] aspect-[4/3]">
-          {/* Base Layer: Source Image */}
+        <div className="relative w-full max-w-[740px] aspect-[4/3]">
+          {/* Source RGB Image */}
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src={report.original_preview_base64}
-            alt="Original forensic subject"
+            alt="Original forensic frame"
             className="absolute inset-0 h-full w-full object-contain pointer-events-none"
           />
 
-          {/* Active DIP Heatmap Layer */}
+          {/* Active DIP Heatmap */}
           {viewMode !== "original" && (
             <div
               className="absolute inset-0 pointer-events-none"
@@ -223,7 +172,7 @@ export default function ImageStage({ report, activeLayer }: ImageStageProps) {
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={activeHeatmapSrc}
-                alt="DIP Forensic Heatmap"
+                alt="DIP forensic heatmap"
                 className="h-full w-full object-contain"
               />
             </div>
@@ -232,10 +181,10 @@ export default function ImageStage({ report, activeLayer }: ImageStageProps) {
           {/* 8x8 DCT Block Grid Overlay */}
           {showGrid8x8 && (
             <div
-              className="absolute inset-0 pointer-events-none opacity-35"
+              className="absolute inset-0 pointer-events-none opacity-40"
               style={{
                 backgroundImage:
-                  "linear-gradient(to right, rgba(6, 182, 212, 0.35) 1px, transparent 1px), linear-gradient(to bottom, rgba(6, 182, 212, 0.35) 1px, transparent 1px)",
+                  "linear-gradient(to right, rgba(0, 229, 255, 0.4) 1px, transparent 1px), linear-gradient(to bottom, rgba(0, 229, 255, 0.4) 1px, transparent 1px)",
                 backgroundSize: `${(8 / report.image_width) * 100}% ${(8 / report.image_height) * 100}%`,
               }}
             />
@@ -247,7 +196,6 @@ export default function ImageStage({ report, activeLayer }: ImageStageProps) {
             className="absolute inset-0 h-full w-full pointer-events-none"
             preserveAspectRatio="xMidYMid meet"
           >
-            {/* Copy-Move Displacement Vectors */}
             {showVectors &&
               report.clone_vectors.map((vec: CloneVector, idx: number) => (
                 <g key={`vec-${idx}`}>
@@ -256,16 +204,31 @@ export default function ImageStage({ report, activeLayer }: ImageStageProps) {
                     y1={vec.src_y}
                     x2={vec.dst_x}
                     y2={vec.dst_y}
-                    stroke="#06B6D4"
+                    stroke="#00E5FF"
                     strokeWidth="2"
                     strokeDasharray="4 2"
                   />
-                  <circle cx={vec.src_x} cy={vec.src_y} r="4.5" fill="#10B981" stroke="#05070B" strokeWidth="1.5" />
-                  <circle cx={vec.dst_x} cy={vec.dst_y} r="4.5" fill="#F43F5E" stroke="#05070B" strokeWidth="1.5" />
+                  <rect
+                    x={vec.src_x - 3}
+                    y={vec.src_y - 3}
+                    width="6"
+                    height="6"
+                    fill="#00E676"
+                    stroke="#080808"
+                    strokeWidth="1"
+                  />
+                  <rect
+                    x={vec.dst_x - 3}
+                    y={vec.dst_y - 3}
+                    width="6"
+                    height="6"
+                    fill="#FF2A2A"
+                    stroke="#080808"
+                    strokeWidth="1"
+                  />
                 </g>
               ))}
 
-            {/* Tamper Localization Bounding Boxes */}
             {showBoxes &&
               report.bounding_boxes.map((box: BoundingBox) => (
                 <g key={`box-${box.id}`}>
@@ -274,27 +237,26 @@ export default function ImageStage({ report, activeLayer }: ImageStageProps) {
                     y={box.y}
                     width={box.width}
                     height={box.height}
-                    fill="rgba(244, 63, 94, 0.12)"
-                    stroke="#F43F5E"
+                    fill="rgba(255, 42, 42, 0.14)"
+                    stroke="#FF2A2A"
                     strokeWidth="2"
                   />
                   <rect
                     x={box.x}
-                    y={Math.max(0, box.y - 20)}
-                    width={Math.min(report.image_width - box.x, 195)}
-                    height="20"
-                    fill="#F43F5E"
-                    rx="2"
+                    y={Math.max(0, box.y - 19)}
+                    width={Math.min(report.image_width - box.x, 190)}
+                    height="19"
+                    fill="#FF2A2A"
                   />
                   <text
                     x={box.x + 5}
-                    y={Math.max(14, box.y - 6)}
-                    fill="#FFFFFF"
+                    y={Math.max(13, box.y - 5)}
+                    fill="#080808"
                     fontSize="11"
                     fontFamily="monospace"
                     fontWeight="bold"
                   >
-                    {`R${box.id}: ${box.confidence.toFixed(0)}% (${box.area_ratio}% area)`}
+                    {`R${box.id} // ${box.confidence.toFixed(0)}% [${box.area_ratio}%]`}
                   </text>
                 </g>
               ))}
@@ -303,26 +265,26 @@ export default function ImageStage({ report, activeLayer }: ImageStageProps) {
           {/* Split-Screen Divider Bar */}
           {viewMode === "split" && (
             <div
-              className="absolute top-0 bottom-0 w-0.5 bg-cyan-400 shadow-[0_0_12px_rgba(6,182,212,0.9)] pointer-events-none"
+              className="absolute top-0 bottom-0 w-[2px] bg-[#00e5ff] pointer-events-none"
               style={{ left: `${splitPos}%` }}
             >
-              <div className="absolute top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full border border-cyan-300 bg-slate-950 px-2 py-0.5 text-[10px] font-mono text-cyan-300 shadow-lg">
-                &larr; RGB | DIP &rarr;
+              <div className="absolute top-1/2 -translate-x-1/2 -translate-y-1/2 border border-[#00e5ff] bg-[#080808] px-2 py-0.5 text-[10px] font-mono font-bold text-[#00e5ff] whitespace-nowrap">
+                &larr; RGB // DIP &rarr;
               </div>
             </div>
           )}
 
-          {/* Synchronized Dual Magnifier Loupe (Source vs Active Heatmap) */}
+          {/* Synchronized Dual Magnifier Loupe */}
           {loupeActive && cursorNorm && (
             <div
-              className="pointer-events-none absolute z-20 flex gap-1.5 rounded-lg border border-cyan-500/60 bg-slate-950/95 p-1.5 shadow-2xl backdrop-blur-md"
+              className="hidden sm:flex pointer-events-none absolute z-20 gap-1.5 border border-[#00e5ff] bg-[#080808]/95 p-1.5"
               style={{
-                left: cursorNorm.x > 0.55 ? "12px" : undefined,
-                right: cursorNorm.x <= 0.55 ? "12px" : undefined,
-                top: "12px",
+                left: cursorNorm.x > 0.55 ? "10px" : undefined,
+                right: cursorNorm.x <= 0.55 ? "10px" : undefined,
+                top: "10px",
               }}
             >
-              <div className="relative h-24 w-24 overflow-hidden rounded border border-slate-700">
+              <div className="relative h-24 w-24 overflow-hidden border border-[#222220]">
                 <div
                   className="h-full w-full"
                   style={{
@@ -333,12 +295,12 @@ export default function ImageStage({ report, activeLayer }: ImageStageProps) {
                     imageRendering: "pixelated",
                   }}
                 />
-                <span className="absolute bottom-0.5 left-1 rounded bg-black/75 px-1 font-mono text-[9px] text-slate-200">
+                <span className="absolute bottom-0 left-0 bg-[#080808] px-1 font-mono text-[9px] text-[#f2efe9]">
                   RGB 5&times;
                 </span>
               </div>
 
-              <div className="relative h-24 w-24 overflow-hidden rounded border border-cyan-500/50">
+              <div className="relative h-24 w-24 overflow-hidden border border-[#00e5ff]">
                 <div
                   className="h-full w-full"
                   style={{
@@ -349,7 +311,7 @@ export default function ImageStage({ report, activeLayer }: ImageStageProps) {
                     imageRendering: "pixelated",
                   }}
                 />
-                <span className="absolute bottom-0.5 left-1 rounded bg-black/75 px-1 font-mono text-[9px] text-cyan-300">
+                <span className="absolute bottom-0 left-0 bg-[#080808] px-1 font-mono text-[9px] text-[#00e5ff]">
                   DIP 5&times;
                 </span>
               </div>
@@ -358,56 +320,56 @@ export default function ImageStage({ report, activeLayer }: ImageStageProps) {
         </div>
       </div>
 
-      {/* Bottom Telemetry Bar */}
-      <div className="flex flex-wrap items-center justify-between gap-3 border-t border-slate-800/80 bg-[#070A10] px-4 py-2 text-xs text-slate-400">
-        <div className="flex flex-wrap items-center gap-4 font-mono">
+      {/* Bottom Telemetry Strip */}
+      <div className="border-t border-[#222220] bg-[#0b0b0b] px-3 sm:px-4 py-2.5 flex flex-wrap items-center justify-between gap-3 font-mono text-[10px] sm:text-[11px] text-[#88857e]">
+        <div className="flex flex-wrap items-center gap-3 sm:gap-5">
           <span>
-            XY:{" "}
-            <strong className="text-slate-200">
+            CURSOR:{" "}
+            <strong className="text-[#f2efe9]">
               ({pixelX}, {pixelY})
             </strong>
           </span>
           <span>
-            8&times;8 DCT Block:{" "}
-            <strong className="text-cyan-400">
+            DCT_BLOCK:{" "}
+            <strong className="text-[#00e5ff]">
               [{dctBlockX}, {dctBlockY}]
             </strong>
           </span>
           <span>
-            Grid Phase (mod 8):{" "}
-            <strong className="text-emerald-400">
+            PHASE_MOD_8:{" "}
+            <strong className="text-[#00e676]">
               ({dctPhaseX}, {dctPhaseY})
             </strong>
           </span>
         </div>
 
         {viewMode === "split" && (
-          <div className="flex items-center gap-2">
-            <span className="text-[11px] text-slate-400">Split Position:</span>
+          <div className="flex items-center gap-2 w-full sm:w-auto justify-between sm:justify-end">
+            <span>SPLIT:</span>
             <input
               type="range"
               min={0}
               max={100}
               value={splitPos}
               onChange={(e) => setSplitPos(Number(e.target.value))}
-              className="h-1.5 w-28 accent-cyan-400 cursor-pointer"
+              className="h-1.5 w-28 accent-[#00e5ff] cursor-pointer"
             />
-            <span className="font-mono text-[11px] text-cyan-300">{splitPos}%</span>
+            <span className="text-[#00e5ff] font-bold w-8 text-right">{splitPos}%</span>
           </div>
         )}
 
         {viewMode === "blend" && (
-          <div className="flex items-center gap-2">
-            <span className="text-[11px] text-slate-400">Heatmap Opacity:</span>
+          <div className="flex items-center gap-2 w-full sm:w-auto justify-between sm:justify-end">
+            <span>ALPHA:</span>
             <input
               type="range"
               min={10}
               max={100}
               value={blendOpacity}
               onChange={(e) => setBlendOpacity(Number(e.target.value))}
-              className="h-1.5 w-28 accent-cyan-400 cursor-pointer"
+              className="h-1.5 w-28 accent-[#00e5ff] cursor-pointer"
             />
-            <span className="font-mono text-[11px] text-cyan-300">{blendOpacity}%</span>
+            <span className="text-[#00e5ff] font-bold w-8 text-right">{blendOpacity}%</span>
           </div>
         )}
       </div>

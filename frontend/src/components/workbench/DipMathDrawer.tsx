@@ -1,7 +1,6 @@
 "use client";
 
 import React from "react";
-import { BookOpen, Cpu, BarChart3, Sigma } from "lucide-react";
 import { LayerResult } from "@/lib/types";
 
 interface DipMathDrawerProps {
@@ -13,81 +12,77 @@ export default function DipMathDrawer({ layer }: DipMathDrawerProps) {
   const maxHist = Math.max(...histogram_data, 0.01);
 
   return (
-    <div className="rounded-xl border border-slate-800/90 bg-[#0B0F17] p-4 space-y-4">
-      <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-800/80 pb-3">
-        <div className="flex items-center gap-2">
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg border border-cyan-500/30 bg-cyan-500/10 text-cyan-400">
-            <Sigma className="h-4 w-4" />
-          </div>
-          <div>
-            <div className="text-[11px] font-mono uppercase tracking-wider text-cyan-400">
-              {dip_math.signal_domain}
-            </div>
-            <h3 className="text-sm font-bold text-slate-100">{dip_math.algorithm_name}</h3>
-          </div>
-        </div>
-        <span className="rounded-full border border-slate-700 bg-slate-900 px-2.5 py-0.5 font-mono text-[11px] text-slate-300">
-          Weight: {(layer.weight * 100).toFixed(0)}% in Fusion
+    <div className="panel-frame">
+      <div className="panel-header">
+        <span>
+          SIGNAL_INSPECTOR // {dip_math.signal_domain.toUpperCase()}
+        </span>
+        <span className="text-[#00e5ff]">
+          FUSION WEIGHT: {(layer.weight * 100).toFixed(0)}%
         </span>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
-        {/* Left: Mathematical Formulation & Signal Guide */}
-        <div className="lg:col-span-7 space-y-3">
-          <div className="rounded-lg border border-slate-800 bg-[#06090F] p-3">
-            <div className="mb-1 flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-slate-400">
-              <BookOpen className="h-3.5 w-3.5 text-cyan-400" />
-              <span>Governing DIP Mathematical Formulation</span>
+      <div className="p-4 sm:p-5 grid grid-cols-1 lg:grid-cols-12 gap-5">
+        {/* Left 7 Cols: Formula, Interpretation, Findings */}
+        <div className="lg:col-span-7 space-y-4 min-w-0">
+          <div>
+            <div className="font-mono text-[10px] uppercase tracking-widest text-[#00e5ff] mb-1">
+              ACTIVE OPERATOR
             </div>
-            <pre className="overflow-x-auto whitespace-pre-wrap font-mono text-xs text-cyan-300 leading-relaxed">
+            <h3 className="font-display font-black text-2xl sm:text-3xl uppercase text-[#f2efe9] tracking-tight">
+              {dip_math.algorithm_name}
+            </h3>
+          </div>
+
+          <div className="border border-[#222220] bg-[#080808] p-3.5">
+            <div className="font-mono text-[10px] uppercase tracking-wider text-[#88857e] mb-1.5">
+              GOVERNING MATHEMATICAL FORMULATION
+            </div>
+            <pre className="font-mono text-xs text-[#00e676] overflow-x-auto whitespace-pre-wrap leading-relaxed">
               {dip_math.latex_formula}
             </pre>
           </div>
 
-          <div className="rounded-lg border border-slate-800/80 bg-slate-900/40 p-3">
-            <div className="text-xs font-semibold text-slate-200 mb-1">
-              Forensic Signal Interpretation
+          <div className="border border-[#222220] bg-[#0b0b0b] p-3.5">
+            <div className="font-mono text-[10px] uppercase tracking-wider text-[#f2efe9] font-bold mb-1">
+              FORENSIC SIGNAL INTERPRETATION
             </div>
-            <p className="text-xs text-slate-400 leading-relaxed">
+            <p className="text-xs text-[#88857e] leading-relaxed">
               {dip_math.interpretation_guide}
             </p>
           </div>
 
-          {/* Quantitative Findings List */}
           <div className="space-y-1.5">
-            <div className="text-xs font-semibold uppercase tracking-wider text-slate-400">
-              Layer Execution Telemetry
+            <div className="font-mono text-[10px] uppercase tracking-wider text-[#88857e]">
+              QUANTITATIVE LAYER TELEMETRY
             </div>
             {finding_details.map((detail, i) => (
               <div
                 key={i}
-                className="flex items-start gap-2 rounded-md border border-slate-800/60 bg-[#070A10] px-3 py-1.5 text-xs text-slate-300"
+                className="border border-[#222220] bg-[#080808] px-3 py-2 font-mono text-[11px] text-[#f2efe9] flex items-start gap-2"
               >
-                <span className="font-mono text-cyan-400 font-bold">&rsaquo;</span>
+                <span className="text-[#00e5ff] font-bold shrink-0">[{i + 1}]</span>
                 <span>{detail}</span>
               </div>
             ))}
           </div>
         </div>
 
-        {/* Right: Residual Histogram, Active Kernel/Matrix & Metrics */}
-        <div className="lg:col-span-5 space-y-3">
-          {/* 32-Bin Intensity Histogram */}
-          <div className="rounded-lg border border-slate-800 bg-[#06090F] p-3">
-            <div className="mb-2 flex items-center justify-between text-[11px] text-slate-400">
-              <span className="flex items-center gap-1 font-semibold uppercase tracking-wider">
-                <BarChart3 className="h-3.5 w-3.5 text-cyan-400" />
-                32-Bin Residual Energy Histogram
-              </span>
-              <span className="font-mono text-[10px] text-slate-400">[0 .. 255]</span>
+        {/* Right 5 Cols: 32-Bin Residual Histogram, Metrics & Kernel Matrix */}
+        <div className="lg:col-span-5 space-y-4 min-w-0">
+          {/* 32-Bin Histogram */}
+          <div className="border border-[#222220] bg-[#080808] p-3.5">
+            <div className="flex items-center justify-between font-mono text-[10px] text-[#88857e] mb-2">
+              <span>32-BIN RESIDUAL ENERGY HISTOGRAM</span>
+              <span className="text-[#00e5ff]">[0..255]</span>
             </div>
-            <div className="flex h-20 items-end gap-0.5 pt-2">
+            <div className="flex h-24 items-end gap-[2px] pt-2 border-b border-[#222220]">
               {histogram_data.map((val, idx) => {
                 const heightPct = Math.max(4, Math.round((val / maxHist) * 100));
                 return (
                   <div
                     key={idx}
-                    className="flex-1 rounded-t bg-gradient-to-t from-cyan-600/70 to-emerald-400/90 transition-all"
+                    className="flex-1 bg-[#00e5ff] hover:bg-[#00e676] transition-colors"
                     style={{ height: `${heightPct}%` }}
                     title={`Bin ${idx}: ${(val * 100).toFixed(2)}%`}
                   />
@@ -96,39 +91,35 @@ export default function DipMathDrawer({ layer }: DipMathDrawerProps) {
             </div>
           </div>
 
-          {/* Computed Metrics Grid */}
+          {/* Metrics Grid */}
           <div className="grid grid-cols-2 gap-2">
             {Object.entries(metrics).map(([key, value]) => (
-              <div
-                key={key}
-                className="rounded-lg border border-slate-800/80 bg-[#070A10] px-3 py-2"
-              >
-                <div className="text-[10px] font-mono uppercase text-slate-400 truncate">
+              <div key={key} className="border border-[#222220] bg-[#080808] p-2.5 font-mono">
+                <div className="text-[10px] uppercase text-[#88857e] truncate">
                   {key.replace(/_/g, " ")}
                 </div>
-                <div className="mt-0.5 font-mono text-sm font-bold text-slate-100">
+                <div className="mt-1 text-sm font-bold text-[#f2efe9] truncate">
                   {String(value)}
                 </div>
               </div>
             ))}
           </div>
 
-          {/* Convolution Kernel or Quantization Sub-Matrix if present */}
+          {/* Convolution Kernel or DQT Matrix */}
           {dip_math.kernel_or_matrix && (
-            <div className="rounded-lg border border-slate-800 bg-[#06090F] p-2.5">
-              <div className="mb-1.5 flex items-center gap-1.5 text-[10px] font-mono uppercase tracking-wider text-slate-400">
-                <Cpu className="h-3 w-3 text-cyan-400" />
-                <span>Operator Kernel / DQT Matrix</span>
+            <div className="border border-[#222220] bg-[#080808] p-3">
+              <div className="font-mono text-[10px] uppercase tracking-wider text-[#88857e] mb-2">
+                ACTIVE OPERATOR KERNEL / DQT SUB-MATRIX
               </div>
               <div className="overflow-x-auto">
-                <table className="w-full border-collapse font-mono text-[11px] text-center text-slate-300">
+                <table className="w-full border-collapse font-mono text-[10px] text-center text-[#f2efe9]">
                   <tbody>
                     {dip_math.kernel_or_matrix.map((row, rIdx) => (
                       <tr key={rIdx}>
                         {row.map((cell, cIdx) => (
                           <td
                             key={cIdx}
-                            className="border border-slate-800 bg-slate-900/60 px-1.5 py-0.5"
+                            className="border border-[#222220] bg-[#111111] px-1.5 py-1"
                           >
                             {cell}
                           </td>
