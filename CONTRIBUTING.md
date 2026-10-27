@@ -24,7 +24,7 @@ git clone https://github.com/tanisheesh/PixelProof
 cd PixelProof
 
 # Backend (Python FastAPI DIP Engine)
-cd backend && python -m venv .venv && pip install -r requirements.txt
+cd backend && pip install -r requirements.txt
 uvicorn app.main:app --reload --port 8000
 
 # Frontend (Next.js Workbench)

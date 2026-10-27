@@ -8,7 +8,7 @@
 ## Prerequisites
 
 - Node.js 20+ and npm
-- Python 3.12+ (with `pip` and `venv`)
+- Python 3.12+ and `pip`
 
 ---
 
@@ -19,16 +19,10 @@ git clone https://github.com/tanisheesh/PixelProof
 cd PixelProof
 ```
 
-### Install Backend (Python FastAPI DIP Engine)
+### Install Backend (Python FastAPI DIP Engine — no `venv` needed)
 
 ```bash
 cd backend
-python -m venv .venv
-# Windows PowerShell:
-.\.venv\Scripts\Activate.ps1
-# macOS / Linux:
-# source .venv/bin/activate
-
 pip install -r requirements.txt
 ```
 
