@@ -141,9 +141,8 @@ PixelProof is intentionally **stateless** and uses no database:
 
 ## 8. Deployment
 
-1. **Frontend (Vercel):** Connected to `tanisheesh/PixelProof` with Root Directory set to `frontend`. Auto-deploys on every push to `main` and serves `https://pixelproof.tanisheesh.in`.
-2. **Backend (Render / Docker):** Connected to `tanisheesh/PixelProof` with Root Directory set to `backend` (or built via `backend/Dockerfile`), running `uvicorn app.main:app --host 0.0.0.0 --port $PORT`.
-3. **Environment Variables:** `NEXT_PUBLIC_API_URL` on Vercel points to the Render FastAPI URL; `CORS_ORIGINS` on Render allows requests from `https://pixelproof.tanisheesh.in`.
+1. **Frontend (Vercel):** Connected to `tanisheesh/PixelProof` with Root Directory set to `frontend`. Auto-deploys on every push to `main` and serves `https://pixelproof.tanisheesh.in` with zero environment variables required.
+2. **Backend (Render / Docker):** Connected to `tanisheesh/PixelProof` with Root Directory set to `backend` (or built via `backend/Dockerfile`), running `uvicorn app.main:app --host 0.0.0.0 --port 8000` with zero environment variables required.
 
 ---
 

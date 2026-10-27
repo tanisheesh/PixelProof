@@ -41,22 +41,9 @@ npm install
 
 ---
 
-## 2. Environment variables
+## 2. Run locally (Zero `.env` configuration needed)
 
-Copy `.env.example` to `frontend/.env.local` if you want to override the default backend URL:
-
-```bash
-cp .env.example frontend/.env.local
-```
-
-| Variable | Where to get it |
-|---|---|
-| `NEXT_PUBLIC_API_URL` | Defaults to `http://localhost:8000` for local development |
-| `CORS_ORIGINS` | Optional backend CORS allowlist (defaults to `*`) |
-
----
-
-## 3. Run locally
+PixelProof requires **no environment variables, no API keys, and no database setup**.
 
 Start the FastAPI DIP backend in one terminal (runs on port `8000` with Swagger docs at `http://localhost:8000/api-docs`):
 
@@ -76,7 +63,7 @@ PixelProof will be running at `http://localhost:3000`.
 
 ---
 
-## 4. Run tests & academic benchmark evaluation
+## 3. Run tests & academic benchmark evaluation
 
 ```bash
 # Run unit & API integration tests across all 7 DIP layers
@@ -89,7 +76,7 @@ python scripts/evaluate_benchmark.py
 
 ---
 
-## 5. Deploy to production
+## 4. Deploy to production
 
 See [DEPLOY.md](DEPLOY.md) for production deployment, custom domain and rollback steps.
 

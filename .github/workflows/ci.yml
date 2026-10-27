@@ -22,7 +22,6 @@ env:
   CI_DIRS: "backend frontend"
   NODE_DEFAULT_VERSION: "22"
   PYTHON_DEFAULT_VERSION: "3.12"
-  NEXT_PUBLIC_API_URL: "http://localhost:8000"
 
 jobs:
   ci:

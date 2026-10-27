@@ -16,16 +16,9 @@ For local development, see [SETUP.md](SETUP.md).
 
 ---
 
-## 2. Environment variables
+## 2. Zero-Configuration Architecture
 
-Set these in the host dashboard (never commit them). Names and sources are in [`.env.example`](../.env.example).
-
-| Variable | Required | Where it's set |
-|---|---|---|
-| `NEXT_PUBLIC_API_URL` | ✅ | Vercel → Project → Settings → Environment Variables (set to Render backend URL, e.g. `https://pixelproof-api.onrender.com`) |
-| `CORS_ORIGINS` | ❌ | Render → Service → Environment (defaults to `*`, or set to `https://pixelproof.tanisheesh.in`) |
-
-> After changing an env var, **redeploy**. Running deployments don't pick up new values.
+PixelProof requires **no `.env` files, no API keys, and no database**. Both the frontend workbench and the FastAPI DIP engine run out of the box with zero environment variables.
 
 ---
 
@@ -35,8 +28,7 @@ Set these in the host dashboard (never commit them). Names and sources are in [`
 
 1. [vercel.com/new](https://vercel.com/new) → import `tanisheesh/PixelProof`
 2. Framework preset: `Next.js` · Root directory: `frontend`
-3. Add `NEXT_PUBLIC_API_URL` from section 2
-4. Deploy. Every push to `main` now deploys to production, and every PR gets a preview URL.
+3. Deploy. Every push to `main` now deploys to production, and every PR gets a preview URL.
 
 ### Option B: Render (Backend DIP Engine)
 
@@ -44,7 +36,7 @@ Set these in the host dashboard (never commit them). Names and sources are in [`
 2. Root directory: `backend`
 3. Build command: `pip install -r requirements.txt`
 4. Start command: `uvicorn app.main:app --host 0.0.0.0 --port $PORT`
-5. Add `CORS_ORIGINS` from section 2, then deploy.
+5. Deploy.
 
 ### Option C: Docker (self-host backend)
 

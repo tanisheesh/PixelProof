@@ -88,8 +88,8 @@ Breaking changes add a line `🚨 BREAKING CHANGE: <what breaks>` in the commit 
 - Run the formatter/linter before committing. CI runs the same checks.
 - Follow the existing file structure and patterns.
 - TypeScript: `camelCase` variables and functions, `PascalCase` components. Python: `snake_case` files, functions and variables, `PascalCase` classes.
-- No secrets in code. Use env vars and add new ones to `.env.example`.
-- Update docs when behaviour, setup or env vars change.
+- No secrets in code.
+- Update docs when behaviour or setup changes.
 
 ---
 
@@ -98,7 +98,7 @@ Breaking changes add a line `🚨 BREAKING CHANGE: <what breaks>` in the commit 
 - [ ] Branch is up to date with `main`
 - [ ] Lint, typecheck, build and tests pass locally
 - [ ] Commits follow the format above
-- [ ] Docs / `.env.example` / `CHANGELOG.md` updated if needed
+- [ ] Docs / `CHANGELOG.md` updated if needed
 - [ ] PR description explains **what** and **why**
 
 PRs are reviewed as soon as possible. Feedback is about the code, never the person.

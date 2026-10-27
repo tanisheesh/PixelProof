@@ -282,7 +282,7 @@ Follow `../setup-toolkit/AGENTS.md` strictly:
 1. Generate and populate all standard repository files from `../setup-toolkit/repo-template/`:
    - `README.md` (recruiter-first, SVG logo, badges, Engineering Decisions, Docs table, Tanish Poddar footer)
    - `docs/PRD.md`, `docs/ARCHITECTURE.md`, `docs/DECISIONS.md`, `docs/SETUP.md`, `docs/DEPLOY.md`
-   - `CONTRIBUTING.md`, `SECURITY.md`, `CODE_OF_CONDUCT.md`, `CHANGELOG.md`, `.editorconfig`, `.env.example`, `.gitignore`
+   - `CONTRIBUTING.md`, `SECURITY.md`, `CODE_OF_CONDUCT.md`, `CHANGELOG.md`, `.editorconfig`, `.gitignore`
    - `.github/PULL_REQUEST_TEMPLATE.md`, `.github/ISSUE_TEMPLATE/*`, `.github/dependabot.yml` (npm + pip), and `.github/workflows/ci.yml`, `dependabot-auto-merge.yml`, `maintenance-report.yml`
 2. Run all CI checks locally (`pytest`, `npm run lint`, `npm run build`) to ensure 100% pass rate.
 3. Make atomic commits using `../setup-toolkit/guidelines/commit-style.md` (`✨`, `📚`, `🔨`, `👷`, `🧪`).

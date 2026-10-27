@@ -1,6 +1,5 @@
 """Main FastAPI entry point for PixelProof."""
 
-import os
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -19,12 +18,9 @@ app = FastAPI(
     redoc_url="/redoc",
 )
 
-allowed_origins_env = os.environ.get("CORS_ORIGINS", "*")
-origins = [o.strip() for o in allowed_origins_env.split(",") if o.strip()] if allowed_origins_env != "*" else ["*"]
-
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,
+    allow_origins=["*"],
     allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
