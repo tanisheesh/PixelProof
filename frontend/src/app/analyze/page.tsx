@@ -244,8 +244,8 @@ export default function AnalyzePage() {
 
         {/* STATE 3: FULL FORENSIC WORKBENCH */}
         {report && !isLoading && (
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
-            <div className="lg:col-span-8 space-y-5 min-w-0">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-stretch">
+            <div className="lg:col-span-8 flex flex-col gap-5 min-w-0">
               <ImageStage report={report} activeLayer={activeLayerObj} />
 
               <LayerSelector
@@ -254,10 +254,14 @@ export default function AnalyzePage() {
                 onSelectLayer={setActiveLayerId}
               />
 
-              {mathDrawerLayer && <DipMathDrawer layer={mathDrawerLayer} />}
+              {mathDrawerLayer && (
+                <div className="flex-1 flex flex-col">
+                  <DipMathDrawer layer={mathDrawerLayer} />
+                </div>
+              )}
             </div>
 
-            <div className="lg:col-span-4 space-y-5 min-w-0">
+            <div className="lg:col-span-4 flex flex-col gap-5 min-w-0">
               <VerdictCard report={report} engineMode={engineMode} />
 
               <ParameterPanel
@@ -268,7 +272,9 @@ export default function AnalyzePage() {
                 isLoading={isLoading}
               />
 
-              <MetadataTable metadata={report.metadata} />
+              <div className="flex-1 flex flex-col">
+                <MetadataTable metadata={report.metadata} />
+              </div>
             </div>
           </div>
         )}

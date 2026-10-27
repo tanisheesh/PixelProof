@@ -78,7 +78,7 @@ export default function LayerSelector({
           <span className="text-[#00e5ff]">ORTHOGONAL SIGNAL DOMAINS</span>
         </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 divide-x divide-y divide-[#222220] bg-[#0e0e0e]">
+        <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 bg-[#0e0e0e] border-l border-t border-[#222220] -ml-[1px] -mt-[1px]">
           {report.layers.map((layer: LayerResult, idx: number) => {
             const isSelected = activeLayerId === layer.id;
             const barColor =
@@ -93,9 +93,9 @@ export default function LayerSelector({
                 key={layer.id}
                 type="button"
                 onClick={() => onSelectLayer(layer.id)}
-                className={`p-3 text-left font-mono flex flex-col justify-between transition-colors cursor-pointer min-w-0 ${
+                className={`h-full p-3 text-left font-mono flex flex-col justify-between border-r border-b border-[#222220] transition-colors cursor-pointer min-w-0 ${
                   isSelected
-                    ? "bg-[#161616] ring-1 ring-inset ring-[#00e5ff]"
+                    ? "bg-[#161616] ring-2 ring-inset ring-[#00e5ff]"
                     : "hover:bg-[#121212]"
                 }`}
               >

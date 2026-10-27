@@ -9,7 +9,7 @@ interface MetadataTableProps {
 
 export default function MetadataTable({ metadata }: MetadataTableProps) {
   return (
-    <div className="panel-frame">
+    <div className="panel-frame h-full flex flex-col">
       <div className="panel-header">
         <span>CONTAINER_FORENSICS // EXIF &amp; DQT</span>
         <span className="text-[#00e5ff]">
@@ -17,7 +17,7 @@ export default function MetadataTable({ metadata }: MetadataTableProps) {
         </span>
       </div>
 
-      <div className="p-4 space-y-3 font-mono text-xs">
+      <div className="p-4 flex-1 flex flex-col justify-between space-y-3 font-mono text-xs">
         <div className="grid grid-cols-2 gap-2">
           <div className="border border-[#222220] bg-[#080808] p-2.5 min-w-0">
             <div className="text-[10px] text-[#88857e]">SOFTWARE TAG</div>

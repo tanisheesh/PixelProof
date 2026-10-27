@@ -26,6 +26,36 @@
   border-radius: 0px;
 }
 
+/* Custom Industrial Brutalist Scrollbar (Global & Nested Containers) */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #3a3834 #080808;
+}
+
+*::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+*::-webkit-scrollbar-track {
+  background: #080808;
+  border-left: 1px solid #222220;
+  border-top: 1px solid #222220;
+}
+
+*::-webkit-scrollbar-thumb {
+  background: #3a3834;
+  border: 1px solid #222220;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background: #00e5ff;
+}
+
+*::-webkit-scrollbar-corner {
+  background: #080808;
+}
+
 html {
   background-color: var(--bg);
   color: var(--ink);
@@ -81,8 +111,8 @@ body {
 
 @media (min-width: 640px) {
   .brutal-btn {
-    padding: 11px 22px;
-    font-size: 12px;
+    padding: 11px 20px;
+    font-size: 11px;
   }
 }
 

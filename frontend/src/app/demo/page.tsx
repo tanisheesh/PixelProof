@@ -42,7 +42,7 @@ export default function DemoPage() {
     setPresets(loadedPresets);
     setEngineMode(mode);
 
-    const initialId = loadedPresets[1]?.id || loadedPresets[0]?.id || "splice_badge";
+    const initialId = loadedPresets[0]?.id || "splice_badge";
     setSelectedPresetId(initialId);
     const { report: initialReport, engineMode: rMode } = await analyzePreset(
       initialId,
@@ -114,54 +114,64 @@ export default function DemoPage() {
       <Navbar />
 
       <main className="flex-1 max-w-[1400px] w-full mx-auto px-3 sm:px-6 lg:px-8 space-y-6">
-        {/* Page Header Banner */}
-        <section className="border-x border-b border-[#222220] bg-[#0e0e0e] p-5 sm:p-7 flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-          <div>
-            <div className="font-mono text-[10px] sm:text-[11px] uppercase tracking-widest text-[#00e5ff] mb-1">
-              {"// [02] INTERACTIVE BENCHMARK & SELF-ATTACK SANDBOX"}
+        {/* Top Control Box — Clean 12-Column Grid */}
+        <section className="border-x border-b border-[#222220] bg-[#0e0e0e]">
+          <div className="p-5 sm:p-7 flex flex-col lg:flex-row lg:items-center justify-between gap-5">
+            <div className="min-w-0">
+              <div className="font-mono text-[10px] sm:text-[11px] uppercase tracking-widest text-[#00e5ff] mb-1">
+                {"// [02] INTERACTIVE BENCHMARK & SELF-ATTACK SANDBOX"}
+              </div>
+              <h1 className="font-display font-black text-3xl sm:text-5xl uppercase tracking-tight text-[#f2efe9]">
+                BENCHMARK SUITE &amp; LIVE TAMPER SANDBOX
+              </h1>
+              <p className="text-xs sm:text-sm text-[#88857e] mt-1 max-w-2xl">
+                Inspect 6 ground-truth forensic cases below or switch to the Live Tamper Sandbox
+                to clone, splice, or blur an image yourself and watch the 7 DIP layers isolate
+                your edit.
+              </p>
             </div>
-            <h1 className="font-display font-black text-3xl sm:text-5xl uppercase tracking-tight text-[#f2efe9]">
-              BENCHMARK SUITE &amp; LIVE TAMPER SANDBOX
-            </h1>
-            <p className="text-xs sm:text-sm text-[#88857e] mt-1 max-w-2xl">
-              Select any of the 6 ground-truth forensic cases below or switch to the Live Tamper
-              Sandbox to clone, splice, or blur an image yourself and watch the 7 DIP layers
-              isolate your edit.
-            </p>
+
+            <div className="flex flex-wrap items-center gap-2.5 shrink-0">
+              <Link href="/how-it-works" className="brutal-btn">
+                GUIDE &amp; GLOSSARY
+              </Link>
+              <Link href="/analyze" className="brutal-btn brutal-btn-primary">
+                UPLOAD CUSTOM IMAGE →
+              </Link>
+            </div>
           </div>
 
-          <div className="flex flex-wrap items-center gap-2 shrink-0">
-            <div className="grid grid-cols-2 border border-[#222220] w-full sm:w-auto">
-              <button
-                type="button"
-                onClick={() => setDemoTab("presets")}
-                className={`px-4 py-2.5 font-mono text-[11px] font-bold tracking-wider border-r border-[#222220] cursor-pointer ${
-                  demoTab === "presets"
-                    ? "bg-[#00e5ff] text-[#080808]"
-                    : "bg-[#080808] text-[#88857e] hover:text-[#f2efe9]"
-                }`}
-              >
-                [01] 6 BENCHMARK CASES
-              </button>
-              <button
-                type="button"
-                onClick={() => setDemoTab("sandbox")}
-                className={`px-4 py-2.5 font-mono text-[11px] font-bold tracking-wider cursor-pointer ${
-                  demoTab === "sandbox"
-                    ? "bg-[#ff2a2a] text-[#080808]"
-                    : "bg-[#080808] text-[#88857e] hover:text-[#f2efe9]"
-                }`}
-              >
-                [02] LIVE TAMPER SANDBOX
-              </button>
-            </div>
+          {/* Full-Width 2-Tab Mode Bar at bottom of First Box */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 border-t border-[#222220] bg-[#0b0b0b]">
+            <button
+              type="button"
+              onClick={() => setDemoTab("presets")}
+              className={`py-3.5 px-5 font-mono text-xs font-bold tracking-wider text-left flex items-center justify-between border-b sm:border-b-0 sm:border-r border-[#222220] cursor-pointer transition-colors ${
+                demoTab === "presets"
+                  ? "bg-[#00e5ff] text-[#080808]"
+                  : "text-[#88857e] hover:text-[#f2efe9] hover:bg-[#121212]"
+              }`}
+            >
+              <span>[MODE 01] 6 PRE-LOADED BENCHMARK CASES</span>
+              <span className="text-[10px] uppercase">
+                {demoTab === "presets" ? "● ACTIVE" : "SWITCH →"}
+              </span>
+            </button>
 
-            <Link href="/how-it-works" className="brutal-btn w-full sm:w-auto">
-              WHAT DO THESE METRICS MEAN?
-            </Link>
-            <Link href="/analyze" className="brutal-btn w-full sm:w-auto">
-              UPLOAD CUSTOM IMAGE →
-            </Link>
+            <button
+              type="button"
+              onClick={() => setDemoTab("sandbox")}
+              className={`py-3.5 px-5 font-mono text-xs font-bold tracking-wider text-left flex items-center justify-between cursor-pointer transition-colors ${
+                demoTab === "sandbox"
+                  ? "bg-[#ff2a2a] text-[#080808]"
+                  : "text-[#88857e] hover:text-[#f2efe9] hover:bg-[#121212]"
+              }`}
+            >
+              <span>[MODE 02] LIVE TAMPER SANDBOX (CREATE FORGERY IN BROWSER)</span>
+              <span className="text-[10px] uppercase">
+                {demoTab === "sandbox" ? "● ACTIVE" : "SWITCH →"}
+              </span>
+            </button>
           </div>
         </section>
 
@@ -180,10 +190,10 @@ export default function DemoPage() {
           />
         )}
 
-        {/* Full 7-Layer Forensic Workbench Grid */}
+        {/* Full 7-Layer Forensic Workbench Grid — Equal Bottom Alignment */}
         {report && (
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
-            <div className="lg:col-span-8 space-y-5 min-w-0">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-stretch">
+            <div className="lg:col-span-8 flex flex-col gap-5 min-w-0">
               <ImageStage report={report} activeLayer={activeLayerObj} />
 
               <LayerSelector
@@ -192,10 +202,14 @@ export default function DemoPage() {
                 onSelectLayer={setActiveLayerId}
               />
 
-              {mathDrawerLayer && <DipMathDrawer layer={mathDrawerLayer} />}
+              {mathDrawerLayer && (
+                <div className="flex-1 flex flex-col">
+                  <DipMathDrawer layer={mathDrawerLayer} />
+                </div>
+              )}
             </div>
 
-            <div className="lg:col-span-4 space-y-5 min-w-0">
+            <div className="lg:col-span-4 flex flex-col gap-5 min-w-0">
               <VerdictCard report={report} engineMode={engineMode} />
 
               <ParameterPanel
@@ -206,7 +220,9 @@ export default function DemoPage() {
                 isLoading={isLoading}
               />
 
-              <MetadataTable metadata={report.metadata} />
+              <div className="flex-1 flex flex-col">
+                <MetadataTable metadata={report.metadata} />
+              </div>
             </div>
           </div>
         )}

@@ -12,7 +12,7 @@ export default function DipMathDrawer({ layer }: DipMathDrawerProps) {
   const maxHist = Math.max(...histogram_data, 0.01);
 
   return (
-    <div className="panel-frame">
+    <div className="panel-frame h-full flex flex-col">
       <div className="panel-header">
         <span>
           SIGNAL_INSPECTOR // {dip_math.signal_domain.toUpperCase()}
@@ -22,7 +22,7 @@ export default function DipMathDrawer({ layer }: DipMathDrawerProps) {
         </span>
       </div>
 
-      <div className="p-4 sm:p-5 grid grid-cols-1 lg:grid-cols-12 gap-5">
+      <div className="p-4 sm:p-5 flex-1 grid grid-cols-1 lg:grid-cols-12 gap-5 content-between">
         {/* Left 7 Cols: Formula, Interpretation, Findings */}
         <div className="lg:col-span-7 space-y-4 min-w-0">
           <div>

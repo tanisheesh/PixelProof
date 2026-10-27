@@ -17,14 +17,45 @@ export default function Navbar() {
   return (
     <header className="sticky top-0 z-50 w-full bg-[#080808]/95 backdrop-blur-sm border-b border-[#222220]">
       <div className="max-w-[1400px] mx-auto px-3 sm:px-6 lg:px-8 h-14 flex items-center justify-between gap-2">
-        {/* Brand */}
+        {/* Brand with SVG Logo */}
         <Link href="/" className="flex items-center gap-2.5 group min-w-0">
-          <div className="w-7 h-7 shrink-0 bg-[#00e5ff] text-[#080808] font-mono font-bold text-xs flex items-center justify-center tracking-tighter">
-            PP
-          </div>
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="30"
+            height="30"
+            viewBox="0 0 64 64"
+            fill="none"
+            className="shrink-0 transition-transform group-hover:scale-105"
+            aria-label="PixelProof Logo"
+          >
+            <rect width="64" height="64" fill="#080808" />
+            <rect x="3" y="3" width="58" height="58" stroke="#00E5FF" strokeWidth="4" />
+            <rect x="12" y="12" width="16" height="16" fill="#00E5FF" />
+            <rect
+              x="36"
+              y="12"
+              width="16"
+              height="16"
+              stroke="#F2EFE9"
+              strokeWidth="3"
+              fill="#111111"
+            />
+            <rect
+              x="12"
+              y="36"
+              width="16"
+              height="16"
+              stroke="#F2EFE9"
+              strokeWidth="3"
+              fill="#111111"
+            />
+            <rect x="36" y="36" width="16" height="16" fill="#FF2A2A" />
+            <line x1="32" y1="8" x2="32" y2="56" stroke="#222220" strokeWidth="2" />
+            <line x1="8" y1="32" x2="56" y2="32" stroke="#222220" strokeWidth="2" />
+          </svg>
           <div className="flex items-baseline gap-2 truncate">
             <span className="font-display font-black text-xl sm:text-2xl tracking-tight text-[#f2efe9]">
-              PIXELPROOF
+              PIXEL<span className="text-[#00e5ff]">PROOF</span>
             </span>
             <span className="hidden xl:inline font-mono text-[10px] text-[#88857e] tracking-widest">
               SYS.REV.1.0 // 7-LAYER DIP FORENSICS
