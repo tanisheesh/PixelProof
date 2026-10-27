@@ -24,6 +24,9 @@ updates:
     groups:
       minor-and-patch:
         update-types: ["minor", "patch"]
+    ignore:
+      - dependency-name: "typescript"
+        versions: [">= 6.1.0"]
 
   # Python FastAPI DIP Backend: backend/requirements.txt
   - package-ecosystem: "pip"
