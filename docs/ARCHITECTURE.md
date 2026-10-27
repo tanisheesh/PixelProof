@@ -38,9 +38,17 @@ PixelProof/
       utils/encoding.py         Percentile normalization, OpenCV colormaps, 32-bin histograms, Base64 PNG
   frontend/
     src/
-      app/page.tsx              Main Forensic Workbench and Sandbox controller
-      components/workbench/     ImageStage, LayerSelector, DipMathDrawer, ParameterPanel, VerdictCard
-      components/sandbox/       TamperCanvas (interactive browser forgery generator)
+      app/
+        page.tsx                Landing Page (Hero, 3-stage architecture, 7 DIP layer cards, CTAs)
+        demo/page.tsx           Interactive Demo Page (6 pre-loaded benchmark cases + Live Tamper Sandbox)
+        analyze/page.tsx        User Image Analyzer Workspace (Drag & drop upload + 7-layer DIP workbench)
+        how-it-works/page.tsx   Detailed mathematical & signal processing pipeline breakdown
+      components/
+        Navbar.tsx              Floating pill navigation bar
+        Footer.tsx              Global footer
+        PresetGallery.tsx       6 ground-truth forensic benchmark selector
+        workbench/              ImageStage, LayerSelector, DipMathDrawer, ParameterPanel, VerdictCard
+        sandbox/                TamperCanvas (interactive browser forgery generator)
       lib/api.ts                Typed FastAPI client with automatic browser DIP fallback
       lib/client-dip-fallback.ts In-browser HTML5 Canvas DIP implementation
 ```
