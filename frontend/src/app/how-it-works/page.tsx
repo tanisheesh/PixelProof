@@ -54,6 +54,18 @@ const UI_GLOSSARY = [
     howToRead:
       "Normal blocks stay under 2.5σ. When a spliced or airbrushed patch hits 3.5σ to 30σ+, it means that area is statistically impossible to belong to the original camera frame.",
   },
+  {
+    term: "LBP & GLCM TEXTURE DESCRIPTORS",
+    meaning: "Local Binary Patterns (LBP) & Grey Level Co-occurrence Matrix (GLCM) Contrast/Homogeneity.",
+    howToRead:
+      "Measures micro-texture patterns across neighboring pixels. Gaussian blurring, airbrushing, or healing-brush edits destroy local LBP dispersion and spike GLCM Homogeneity.",
+  },
+  {
+    term: "PCA EIGEN-SUBSPACE & BAND-PASS / NOTCH FILTER",
+    meaning: "Principal Component Analysis (PCA) feature reduction & 2D-FFT Band-Pass / Notch filtering.",
+    howToRead:
+      "PCA compresses 16×16 block DCT features onto their top principal components for fast clone matching, while 2D-FFT Band-Pass + Axial Notch filters reject normal 8×8 JPEG grid lines to isolate resampling peaks.",
+  },
 ];
 
 const PARAMETER_GUIDE = [
@@ -116,39 +128,39 @@ const PIPELINE_STEPS = [
   },
   {
     num: "02",
-    name: "2D DISCRETE WAVELET TRANSFORM (DWT) & WIENER NOISE VARIANCE",
+    name: "2D-DWT WAVELET, WIENER FILTER & LBP / GLCM TEXTURE DESCRIPTORS",
     weight: "22%",
-    domain: "Daubechies db4 / Haar HH1 Sub-Band + 5×5 Adaptive Wiener Filter",
+    domain: "Daubechies db4 / Haar HH1 + 5×5 Adaptive Wiener + LBP(8,1) & GLCM",
     plainMeaning:
-      "WHAT IT MEANS: Every camera sensor leaves an invisible grain (noise) across the whole photo. If someone uses a blur/healing brush to hide something (erasing the noise), or pastes an object from another camera (different noise), this layer catches the mismatch.",
+      "WHAT IT MEANS: Every camera sensor leaves an invisible grain (noise) and micro-texture across the photo. Combining 2D-DWT Wavelets and Adaptive Wiener filtering with Local Binary Patterns (LBP) and Grey Level Co-occurrence Matrix (GLCM) descriptors catches blur, airbrushing, or spliced patches.",
     formula:
-      "σ̂_b = median(|HH_{1,b} - median(HH_{1,b})|) / 0.6745,   R_W(x,y) = I(x,y) - Wiener_{5×5}(I(x,y))",
+      "σ̂_b = median(|HH_{1,b}|) / 0.6745,   LBP_{8,1} = Σ_{p=0}^7 s(g_p - g_c)2^p,   C_GLCM = Σ_{i,j} (i-j)² P(i,j)",
     description:
-      "PixelProof decomposes the luminance channel via a 1-level 2D Discrete Wavelet Transform to extract the diagonal detail sub-band (HH1) and combines it with a 5×5 spatial Adaptive Wiener denoising residual. After masking out the top 15% highest Sobel gradient edges, Donoho's Median Absolute Deviation (MAD) estimator computes local noise variance across sliding windows.",
+      "PixelProof decomposes the luminance channel via a 1-level 2D Discrete Wavelet Transform to extract the diagonal detail sub-band (HH1), combines it with a 5×5 spatial Adaptive Wiener denoising residual, and computes 8-neighbor Local Binary Patterns (LBP) alongside 16-level Grey Level Co-occurrence Matrix (GLCM) Contrast and Homogeneity.",
   },
   {
     num: "03",
-    name: "HYBRID COPY-MOVE (CLONE) FORGERY DETECTION",
+    name: "HYBRID COPY-MOVE FORGERY DETECTION (2D-DCT + PCA + ORB)",
     weight: "22%",
-    domain: "16×16 Block 2D-DCT Lexicographical Sort + ORB Keypoints",
+    domain: "16×16 Block 2D-DCT + Principal Component Analysis (PCA) + ORB Keypoints",
     plainMeaning:
-      "WHAT IT MEANS: Catches 'Clone Stamp' edits where someone copies a patch from inside the same photo (like grass, wall, or an object) and pastes it somewhere else in the same photo. Draws cyan lines connecting the original spot to the copied spot.",
+      "WHAT IT MEANS: Catches 'Clone Stamp' edits where someone copies a patch from inside the same photo and pastes it somewhere else. Projects 16×16 block DCT features onto their top Principal Components (PCA) and clusters parallel shift vectors alongside ORB keypoint matches.",
     formula:
-      "F(u,v) = α(u)α(v) Σ_x Σ_y f(x,y) cos((2x+1)uπ/2B) cos((2y+1)vπ/2B),   s_ij = p_i - p_j",
+      "Z_PCA = (X - μ) V_{:, :k},   C = (1/N) X_c^T X_c = V Λ V^T,   s_ij = p_i - p_j",
     description:
-      "Internal copy-move clones share the exact same camera sensor noise and JPEG compression history as the background. Layer 3 slides an overlapping 16×16 window across the image, extracts quantized low-frequency 2D-DCT coefficients, and lexicographically sorts the feature rows so identical patches become adjacent in O(N log N) time.",
+      "Internal copy-move clones share the exact same camera sensor noise and JPEG compression history as the background. Layer 3 slides an overlapping 16×16 window across the image, extracts low-frequency 2D-DCT coefficients, applies Principal Component Analysis (PCA) dimensionality reduction via SVD, and lexicographically sorts the feature rows in O(N log N) time.",
   },
   {
     num: "04",
-    name: "RESAMPLING & 2D-FFT SPECTRAL PERIODICITY",
+    name: "RESAMPLING & 2D-FFT BAND-PASS / BAND-REJECT / NOTCH FILTERING",
     weight: "14%",
-    domain: "3×3 Isotropic Laplacian Derivative + Hanning 2D-FFT",
+    domain: "3×3 Isotropic Laplacian + 2D-FFT Annular Band-Pass & Axial Notch Filter",
     plainMeaning:
-      "WHAT IT MEANS: When a pasted object is resized (stretched/shrunk) or rotated to fit the scene, the computer interpolates neighbouring pixels. This layer detects that artificial stretching pattern in the frequency domain.",
+      "WHAT IT MEANS: When a pasted object is resized or rotated, pixel interpolation creates periodic ripples. An Annular Band-Pass Filter paired with an Axial Notch / Band-Reject Filter removes normal JPEG grid lines in the 2D-FFT spectrum to expose those resampling ripples.",
     formula:
-      "∇²f(x,y) = f(x+1,y)+f(x-1,y)+f(x,y+1)+f(x,y-1)-4f(x,y),   M(u,v) = log(1 + |FFT2(∇²f · w)|)",
+      "G(u,v) = FFT2(∇²f · w) · H_BP(u,v) · H_Notch(u,v),   H_BP(u,v) = I(D_1 ≤ D(u,v) ≤ D_2)",
     description:
-      "Bilinear and bicubic interpolation introduce periodic linear correlations between neighboring pixels. Convolving the luminance channel with an isotropic 2nd-order Laplacian high-pass kernel suppresses low-frequency scene structure and exposes these periodic correlations.",
+      "Bilinear and bicubic interpolation introduce periodic linear correlations between neighboring pixels. Convolving the luminance channel with an isotropic 2nd-order Laplacian high-pass kernel and filtering the 2D-FFT spectrum with an Annular Band-Pass Filter (0.30 ≤ r/r_max ≤ 0.85) and an Axial Notch / Band-Reject Filter (|u - u_0| > 6, |v - v_0| > 6) isolates resampling periodicity.",
   },
   {
     num: "05",

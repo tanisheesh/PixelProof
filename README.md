@@ -34,7 +34,7 @@ PixelProof exposes image manipulation by analyzing physical and mathematical sig
 
 ## What you get
 
-- **7-layer classical DIP forensic pipeline** — ELA & JPEG Ghosts, Wavelet (`HH1`) + Wiener noise residuals, Block-DCT + ORB copy-move vectors, Laplacian + 2D-FFT spectral periodicity, Double-JPEG 8×8 grid phase, Scharr chromatic edges, and JPEG DQT matrix fingerprinting.
+- **7-layer classical DIP forensic pipeline** — ELA & JPEG Ghosts, Wavelet (`HH1`) + Adaptive Wiener + LBP/GLCM texture descriptors, Block 2D-DCT + PCA + ORB copy-move vectors, Laplacian + 2D-FFT Band-Pass/Notch spectral periodicity, Double-JPEG 8×8 grid phase, Scharr chromatic edges, and JPEG DQT matrix fingerprinting.
 - **Interactive forensic workbench & DIP lab controls** — split-screen comparison slider, synchronized 5× pixel magnifier loupe, 8×8 DCT block grid overlay, real-time parameter tuning ($Q$-factor, wavelet basis, morphological kernel), and a live math/histogram drawer showing governing equations and kernels.
 - **Built-in Live Tamper Sandbox** — forge an image directly in the browser using Copy-Move Clone Stamp, Foreign Object Splice, or Gaussian Healing Brush, then immediately run the 7 DIP layers to watch the engine localize your exact edit.
 - **Dual-engine resilience (FastAPI + Client Canvas DIP)** — runs full NumPy/SciPy/OpenCV/PyWavelets processing on the backend with an automatic in-browser HTML5 Canvas DIP fallback so the live workbench never breaks during cold starts.

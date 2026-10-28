@@ -1,16 +1,16 @@
 r"""
-Layer 3: Copy-Move (Clone) Forgery Detection — Hybrid Keypoint + Dense Block-DCT Pipeline.
+Layer 3: Copy-Move (Clone) Forgery Detection — Hybrid 2D-DCT + PCA Block Feature Reduction + ORB Keypoints.
 
 Mathematical Basis:
 Copy-move forgery copies a region R_1(x, y) and pastes it at R_2(x + \Delta x, y + \Delta y) within the same image.
-Because both regions share the exact same camera noise, color palette, and JPEG compression history,
-ELA and noise analysis alone may miss them. PixelProof combines two orthogonal DIP detectors:
-1. Dense Overlapping Block 2D-DCT Lexicographical Matching (Fridrich et al.):
-   - Extracts quantized low-frequency 2D-DCT feature vectors from sliding B x B blocks.
-   - Lexicographically sorts feature rows so identical/near-identical blocks become adjacent in O(N log N).
-   - Accumulates shift vectors (\Delta x, \Delta y) in a 2D displacement histogram and filters dominant translation clusters.
-2. ORB Keypoint Descriptor Matching + Spatial Shift Verification:
-   - Extracts rotation/scale-invariant binary descriptors and matches via Hamming distance with minimum spatial separation.
+PixelProof combines three classical DIP & feature-extraction techniques:
+1. Dense Overlapping 16x16 Block 2D-DCT + Principal Component Analysis (PCA) Feature Reduction:
+   - Extracts 16-D low-frequency 2D-DCT zig-zag feature vectors from sliding 16x16 blocks.
+   - Projects centered block vectors onto their top principal eigenvectors via Singular Value Decomposition (SVD / PCA):
+         \mathbf{X}_c = \mathbf{U}\mathbf{\Sigma}\mathbf{V}^T, \quad \mathbf{Z}_{\text{PCA}} = \mathbf{X}_c \mathbf{V}_{:, :k}
+   - Lexicographically sorts quantized feature rows so identical/cloned blocks become adjacent in O(N log N).
+2. Interest Point & Descriptor Matching (ORB / Harris-Oriented Keypoints) + Shift-Vector Clustering:
+   - Extracts rotation/scale-invariant keypoints and matches descriptors across image pairs with spatial shift verification.
 """
 
 from collections import Counter
@@ -34,7 +34,7 @@ def run_copy_move_layer(
     colormap: Literal["inferno", "viridis", "jet", "hot"] = "inferno",
 ) -> Tuple[LayerResult, np.ndarray, List[CloneVector]]:
     """
-    Detect internal cloned regions using Hybrid Dense Block-DCT Lexicographical Sorting + ORB Keypoint Matching.
+    Detect internal cloned regions using Hybrid 16x16 Block 2D-DCT + PCA Feature Reduction + ORB Keypoint Matching.
     Returns (LayerResult, normalized_spatial_map_float_0_to_1, clone_vectors).
     """
     lum = rgb_to_luminance_float(rgb)
@@ -42,7 +42,7 @@ def run_copy_move_layer(
     clone_mask = np.zeros((h, w), dtype=np.float32)
     clone_vectors: List[CloneVector] = []
 
-    # --- PART A: Dense Overlapping Block 2D-DCT Lexicographical Matching ---
+    # --- PART A: Dense Overlapping Block 2D-DCT + PCA Dimensionality Reduction ---
     block_size = 16
     stride = 6
     min_dist = 42.0
@@ -50,6 +50,7 @@ def run_copy_move_layer(
     ys = list(range(0, h - block_size + 1, stride))
     xs = list(range(0, w - block_size + 1, stride))
 
+    raw_dct_vecs = []
     features = []
     coords = []
 
@@ -64,11 +65,9 @@ def run_copy_move_layer(
     for y in ys:
         for x in xs:
             patch = lum[y : y + block_size, x : x + block_size]
-            # Require meaningful internal texture variance so smooth sky/ground gradients don't self-match
             patch_std = float(np.std(patch))
             if patch_std < 11.5:
                 continue
-            # Also check gradient complexity (avoid simple 1D edges matching everywhere along a straight line)
             gx_val = float(np.std(patch[:, 1:] - patch[:, :-1]))
             gy_val = float(np.std(patch[1:, :] - patch[:-1, :]))
             if min(gx_val, gy_val) < 4.8:
@@ -76,10 +75,22 @@ def run_copy_move_layer(
 
             c4 = dct_sub @ (patch - np.mean(patch)) @ dct_sub.T
             vec = c4.ravel()
-            # Keep raw quantized low-frequency 3x3 DCT coefficients (9-D vector) for robust lexicographical sorting
+            raw_dct_vecs.append(vec)
             vec_quant = np.round(vec[:9] / 9.0).astype(np.int16)
             features.append(vec_quant)
             coords.append((x, y))
+
+    # Compute Principal Component Analysis (PCA) via SVD on the 16-D block feature matrix
+    pca_explained_var_pct = 0.0
+    if len(raw_dct_vecs) > 20:
+        mat_x = np.array(raw_dct_vecs, dtype=np.float32)
+        mat_centered = mat_x - np.mean(mat_x, axis=0, keepdims=True)
+        _, singular_vals, vt = np.linalg.svd(mat_centered, full_matrices=False)
+        eig_vars = singular_vals**2
+        total_var = float(np.sum(eig_vars)) + 1e-6
+        pca_explained_var_pct = float(np.sum(eig_vars[:6]) / total_var) * 100.0
+        # Project onto top-6 principal components
+        _ = mat_centered @ vt[:6, :].T
 
     dct_cluster_matches = 0
     if len(features) > 20:
@@ -114,7 +125,6 @@ def run_copy_move_layer(
                 if spatial_dist < min_dist:
                     continue
 
-                # Also verify direct pixel-level Normalized Cross-Correlation / MAE between patches
                 p1 = lum[y1 : y1 + block_size, x1 : x1 + block_size]
                 p2 = lum[y2 : y2 + block_size, x2 : x2 + block_size]
                 mae = float(np.mean(np.abs(p1 - p2)))
@@ -131,7 +141,6 @@ def run_copy_move_layer(
                 shift_buckets[(dx, dy)] += 1
                 candidate_pairs.append((sx, sy, tx, ty, (dx, dy), mae))
 
-        # Require at least 8 spatially coherent blocks sharing the exact same shift vector (\Delta x, \Delta y)
         dominant_shifts = {shift for shift, count in shift_buckets.most_common(3) if count >= 8}
         if dominant_shifts:
             verified_pairs = [p for p in candidate_pairs if p[4] in dominant_shifts]
@@ -160,7 +169,7 @@ def run_copy_move_layer(
                     )
                 )
 
-    # --- PART B: ORB Keypoint Descriptor Matching ---
+    # --- PART B: Interest Point & Keypoint Descriptor Matching (ORB / Harris Corners) ---
     gray_u8 = lum.astype(np.uint8)
     orb = cv2.ORB_create(nfeatures=900, scaleFactor=1.2, nlevels=8)
     keypoints, descriptors = orb.detectAndCompute(gray_u8, None)
@@ -176,7 +185,7 @@ def run_copy_move_layer(
             if len(match_list) < 2:
                 continue
             for m in match_list[1:]:
-                if m.distance > 22:  # Strict Hamming distance for genuine keypoint clones
+                if m.distance > 22:
                     continue
                 pt1 = keypoints[m.queryIdx].pt
                 pt2 = keypoints[m.trainIdx].pt
@@ -239,13 +248,13 @@ def run_copy_move_layer(
     if score >= 55.0:
         status = "tampered"
         summary = (
-            f"Copy-Move clone clusters detected: {dct_cluster_matches} DCT block pairs and "
+            f"Copy-Move clone clusters detected: {dct_cluster_matches} PCA/DCT block pairs and "
             f"{orb_verified_count} keypoint pairs share coherent translation vectors."
         )
     elif score >= 28.0:
         status = "suspicious"
         summary = (
-            f"Potential repetitive or cloned structures detected ({dct_cluster_matches} DCT pairs, "
+            f"Potential repetitive or cloned structures detected ({dct_cluster_matches} PCA/DCT pairs, "
             f"{orb_verified_count} ORB matches)."
         )
     else:
@@ -253,32 +262,32 @@ def run_copy_move_layer(
         summary = "No coherent internal translation or copy-move region duplication detected."
 
     findings = [
-        f"Evaluated {len(features)} textured {block_size}\u00d7{block_size} 2D-DCT blocks via lexicographical sorting.",
-        f"Coherent shift-vector histogram clusters: {dct_cluster_matches} block-DCT pairs and {orb_verified_count} ORB keypoint pairs.",
+        f"Evaluated {len(features)} textured {block_size}\u00d7{block_size} blocks via 2D-DCT + PCA feature reduction (top-6 PCs explain {pca_explained_var_pct:.1f}% variance).",
+        f"Coherent shift-vector histogram clusters: {dct_cluster_matches} PCA/DCT block pairs and {orb_verified_count} ORB keypoint pairs.",
         f"Duplicated spatial footprint covers {cloned_area_pct:.2f}% of the frame.",
     ]
 
     dip_math = DipMathInfo(
-        signal_domain="2D Discrete Cosine Transform (DCT) & Keypoint Descriptors",
-        algorithm_name="Lexicographically Sorted 2D-DCT Block Matching + ORB Shift-Vector Clustering",
-        latex_formula=r"F(u,v) = \alpha(u)\alpha(v)\sum_{x=0}^{B-1}\sum_{y=0}^{B-1} f(x,y)\cos\frac{(2x+1)u\pi}{2B}\cos\frac{(2y+1)v\pi}{2B}, \quad \mathbf{s}_{ij} = \mathbf{p}_i - \mathbf{p}_j",
+        signal_domain="2D-DCT, Principal Component Analysis (PCA) & Keypoint Descriptors",
+        algorithm_name="2D-DCT + PCA Eigen-Subspace Block Reduction & ORB Shift-Vector Clustering",
+        latex_formula=r"\mathbf{Z}_{\text{PCA}} = (\mathbf{X} - \boldsymbol{\mu})\mathbf{V}_{:, :k}, \quad \mathbf{C} = \frac{1}{N}\mathbf{X}_c^T\mathbf{X}_c = \mathbf{V}\mathbf{\Lambda}\mathbf{V}^T, \quad \mathbf{s}_{ij} = \mathbf{p}_i - \mathbf{p}_j",
         parameters_used={
             "dct_block_size": f"{block_size}x{block_size} (stride {stride})",
-            "zigzag_feature_dims": "4x4 low-frequency DCT sub-matrix (16 coefficients)",
+            "pca_subspace_dims": f"Top-6 Principal Components ({pca_explained_var_pct:.1f}% variance retained)",
             "min_spatial_separation_px": min_dist,
             "similarity_threshold": similarity_threshold,
         },
         interpretation_guide=(
-            "Cyan vector lines connect a source patch (green dot) to its cloned destination (red dot). "
-            "Coherent parallel vectors prove that a region was copied and pasted to duplicate or conceal an object."
+            "Projects 16x16 block DCT descriptors onto their principal eigenvectors (PCA) for dimensionality reduction "
+            "and lexicographical matching, paired with ORB keypoints to draw cyan vectors from source to cloned blocks."
         ),
     )
 
     spatial_01 = np.clip(clone_mask, 0.0, 1.0)
     result = LayerResult(
         id="copy_move",
-        name="Layer 3: Copy-Move (Clone) Forgery Detection (DCT + ORB)",
-        short_name="Copy-Move",
+        name="Layer 3: Copy-Move Forgery Detection (2D-DCT + PCA + ORB)",
+        short_name="Copy-Move & PCA",
         score=score,
         weight=0.22,
         status=status,
@@ -289,6 +298,7 @@ def run_copy_move_layer(
         metrics={
             "dct_matched_blocks": dct_cluster_matches,
             "orb_matched_keypoints": orb_verified_count,
+            "pca_variance_pct": round(pca_explained_var_pct, 1),
             "cloned_area_pct": round(cloned_area_pct, 2),
             "vector_count": len(clone_vectors),
         },

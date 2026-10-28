@@ -1,15 +1,16 @@
 r"""
-Layer 4: Resampling & Interpolation Periodic Artifact Detection (2nd-Order Laplacian + 2D-FFT Spectrum).
+Layer 4: Resampling & Periodic Artifact Detection — 2nd-Order Laplacian + 2D-FFT Band-Pass, Band-Reject & Notch Filtering.
 
-Mathematical Basis (Popescu & Farid):
-- When a spliced object is scaled, rotated, or skewed before pasting, bilinear or bicubic interpolation
-  introduces periodic linear correlations between neighboring pixels.
-- Applying an isotropic 2nd-order Laplacian high-pass operator:
-      \nabla^2 I(x,y) = I(x+1,y) + I(x-1,y) + I(x,y+1) + I(x,y-1) - 4I(x,y)
-  suppresses scene content and exposes the underlying interpolation residual.
-- In the frequency domain via the 2D Fast Fourier Transform (2D-FFT):
-      \mathcal{F}(u,v) = \sum_{x}\sum_{y} |\nabla^2 I(x,y)| \cdot w(x,y) e^{-j2\pi(ux/M + vy/N)}
-  resampled regions produce distinct secondary high-frequency spectral peaks and localized high-pass energy drops.
+Mathematical Basis (Popescu & Farid /Gonzalez & Woods):
+1. Isotropic 2nd-Order Laplacian High-Pass Operator:
+       \nabla^2 I(x,y) = I(x+1,y) + I(x-1,y) + I(x,y+1) + I(x,y-1) - 4I(x,y)
+2. 2D Fast Fourier Transform (2D-FFT) with Annular Band-Pass & Ideal Axial Notch / Band-Reject Masking:
+   - Annular Band-Pass Filter H_{\text{BP}}(u,v) isolates radial frequencies D_1 \le D(u,v) \le D_2
+     (0.30 \le r/r_{\max} \le 0.85).
+   - Axial Notch / Band-Reject Filter H_{\text{NR}}(u,v) rejects the horizontal and vertical DC/block harmonic
+     axes (|u - u_0| \le \Delta_w or |v - v_0| \le \Delta_w) so native 8x8 JPEG block boundaries do not
+     contaminate resampling peak detection:
+         G(u,v) = \mathcal{F}\{\nabla^2 I(x,y) \cdot w(x,y)\} \cdot H_{\text{BP}}(u,v) \cdot H_{\text{NR}}(u,v)
 """
 
 from typing import Literal, Tuple
@@ -31,7 +32,7 @@ def run_resampling_fft_layer(
     colormap: Literal["inferno", "viridis", "jet", "hot"] = "inferno",
 ) -> Tuple[LayerResult, np.ndarray]:
     """
-    Execute 2nd-Order Laplacian residual filtering + 2D-FFT spectral periodicity analysis.
+    Execute 2nd-Order Laplacian residual filtering + 2D-FFT Band-Pass / Band-Reject / Notch spectral analysis.
     Returns (LayerResult, normalized_spatial_map_float_0_to_1).
     """
     lum = rgb_to_luminance_float(rgb)
@@ -56,19 +57,28 @@ def run_resampling_fft_layer(
     fft_mag = np.abs(fft_complex)
     log_spectrum = np.log1p(fft_mag)
 
+    # Construct Annular Band-Pass Filter H_BP(u,v) and Axial Notch / Band-Reject Filter H_NR(u,v)
     cy, cx = h // 2, w // 2
     yy, xx = np.ogrid[:h, :w]
     norm_radius = np.sqrt(((yy - cy) / float(max(1, cy))) ** 2 + ((xx - cx) / float(max(1, cx))) ** 2)
-    # Exclude axial u=0 and v=0 lines (where natural 8x8 JPEG block harmonics live) to isolate resampling peaks
-    off_axis = (np.abs(yy - cy) > 6) & (np.abs(xx - cx) > 6)
-    hf_ring_mask = (norm_radius >= 0.30) & (norm_radius <= 0.85) & off_axis
+    band_pass_mask = (norm_radius >= 0.30) & (norm_radius <= 0.85)
+    notch_reject_mask = (np.abs(yy - cy) > 6) & (np.abs(xx - cx) > 6)
+    hf_ring_mask = band_pass_mask & notch_reject_mask
 
     ring_vals = log_spectrum[hf_ring_mask]
     ring_med = float(np.median(ring_vals)) if ring_vals.size > 0 else 1.0
     ring_std = float(np.std(ring_vals)) + 1e-4
     spectral_peak_z = float((np.max(ring_vals) - ring_med) / ring_std) if ring_vals.size > 0 else 0.0
 
-    # Sliding 32x32 local 2D-FFT spectral peak ratio
+    # Measure energy rejected by the Notch filter along cardinal axes vs Band-Pass energy
+    notch_zone_vals = log_spectrum[band_pass_mask & (~notch_reject_mask)]
+    notch_attenuation_db = (
+        float(20.0 * np.log10((np.mean(notch_zone_vals) + 1e-3) / (ring_med + 1e-3)))
+        if notch_zone_vals.size > 0
+        else 0.0
+    )
+
+    # Sliding 32x32 local 2D-FFT Band-Pass + Notch spectral peak ratio
     bsize = 32
     stride = 16
     gh = max(1, (h - bsize) // stride + 1)
@@ -82,7 +92,7 @@ def run_resampling_fft_layer(
             x0 = gx_i * stride
             patch = abs_lap[y0 : y0 + bsize, x0 : x0 + bsize]
             p_fft = np.abs(np.fft.fftshift(np.fft.fft2((patch - np.mean(patch)) * win_patch)))
-            # Zero out DC center
+            # Apply center DC Band-Reject / Notch zeroing
             p_fft[bsize // 2 - 3 : bsize // 2 + 4, bsize // 2 - 3 : bsize // 2 + 4] = 0.0
             p_max = float(np.max(p_fft))
             p_mean = float(np.mean(p_fft)) + 1.0
@@ -129,32 +139,32 @@ def run_resampling_fft_layer(
     if score >= 58.0:
         status = "tampered"
         summary = (
-            f"Periodic resampling harmonics detected in 2D-FFT spectrum (peak Z = {spectral_peak_z:.2f}\u03c3, "
-            f"local block Z = {p98_z:.2f}\u03c3)."
+            f"Periodic resampling harmonics detected via 2D-FFT Band-Pass/Notch filter "
+            f"(peak Z = {spectral_peak_z:.2f}\u03c3, block Z = {p98_z:.2f}\u03c3)."
         )
     elif score >= 32.0:
         status = "suspicious"
         summary = (
             f"Mild high-frequency interpolation periodicity across {anom_pct:.1f}% of blocks "
-            f"(2D-FFT peak Z = {spectral_peak_z:.2f}\u03c3)."
+            f"(Band-Pass 2D-FFT peak Z = {spectral_peak_z:.2f}\u03c3)."
         )
     else:
         status = "clean"
         summary = (
-            f"Isotropic 2D-FFT power spectrum with no abnormal resampling or affine-warping harmonics "
+            f"Isotropic 2D-FFT Band-Pass spectrum with no abnormal resampling harmonics after Notch filtering "
             f"(peak Z = {spectral_peak_z:.2f}\u03c3)."
         )
 
     findings = [
         f"2nd-order Laplacian high-pass filter isolated mean derivative energy of {float(np.mean(abs_lap)):.2f}.",
-        f"Global 2D-FFT high-frequency annular ring peak-to-median Z-score = {spectral_peak_z:.2f}\u03c3 (inset shown at bottom-right).",
+        f"2D-FFT Annular Band-Pass (0.30..0.85) + Axial Notch/Band-Reject filter isolated peak Z = {spectral_peak_z:.2f}\u03c3 (Notch axial attenuation = {notch_attenuation_db:.2f} dB).",
         f"{anom_pct:.1f}% of 32\u00d732 blocks exhibit localized spectral periodicity > 3.2\u03c3.",
     ]
 
     dip_math = DipMathInfo(
-        signal_domain="2nd-Order Spatial Derivative & 2D Fast Fourier Transform (2D-FFT)",
-        algorithm_name="Laplacian Residual Periodic Correlation & 2D-DFT Log-Magnitude Spectrum Analysis",
-        latex_formula=r"\nabla^2 f(x,y) = f(x+1,y)+f(x-1,y)+f(x,y+1)+f(x,y-1)-4f(x,y), \quad M(u,v) = \log\left(1 + \left|\mathcal{F}\{\nabla^2 f \cdot w\}\right|\right)",
+        signal_domain="2nd-Order Laplacian + 2D-FFT Band-Pass, Band-Reject & Notch Filtering",
+        algorithm_name="Laplacian Residual + 2D-FFT Annular Band-Pass & Axial Notch / Band-Reject Filter",
+        latex_formula=r"G(u,v) = \mathcal{F}\{\nabla^2 f \cdot w\} \cdot H_{\text{BP}}(u,v) \cdot H_{\text{Notch}}(u,v), \quad H_{\text{BP}}(u,v) = \mathbb{I}(D_1 \le D(u,v) \le D_2)",
         kernel_or_matrix=[
             [0.0, -1.0, 0.0],
             [-1.0, 4.0, -1.0],
@@ -162,20 +172,20 @@ def run_resampling_fft_layer(
         ],
         parameters_used={
             "high_pass_operator": "3x3 Isotropic Laplacian Kernel",
-            "spectral_window": "2D Separable Hanning Window",
-            "annular_frequency_band": "0.30 <= r/r_max <= 0.85",
+            "band_pass_filter": "Annular Ring 0.30 <= r/r_max <= 0.85",
+            "notch_band_reject_filter": "Axial Harmonic Notch Rejector (|u-u0| > 6, |v-v0| > 6)",
         },
         interpretation_guide=(
-            "Scaling or rotating a spliced object uses bilinear/bicubic interpolation, which creates periodic pixel "
-            "correlations visible as bright secondary peaks in the 2D-FFT spectrum (bottom-right inset) and block map."
+            "Applies an Annular Band-Pass Filter paired with an Axial Notch / Band-Reject Filter in the 2D-FFT "
+            "domain to suppress normal JPEG block harmonics and isolate periodic peaks caused by scaling or rotation."
         ),
     )
 
     spatial_01 = (norm_u8.astype(np.float32)) / 255.0
     result = LayerResult(
         id="resampling_fft",
-        name="Layer 4: Resampling & 2D-FFT Spectral Periodicity",
-        short_name="2D-FFT Spectrum",
+        name="Layer 4: Resampling, 2D-FFT Band-Pass & Notch Spectrum",
+        short_name="2D-FFT & Notch",
         score=score,
         weight=0.14,
         status=status,
@@ -184,7 +194,8 @@ def run_resampling_fft_layer(
         heatmap_base64=heatmap_b64,
         histogram_data=compute_compact_histogram(norm_u8),
         metrics={
-            "fft_spectral_peak_z": round(spectral_peak_z, 2),
+            "fft_bandpass_peak_z": round(spectral_peak_z, 2),
+            "notch_attenuation_db": round(notch_attenuation_db, 2),
             "block_p98_z": round(p98_z, 2),
             "anomalous_blocks_pct": round(anom_pct, 2),
         },
