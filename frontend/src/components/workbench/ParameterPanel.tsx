@@ -120,6 +120,27 @@ export default function ParameterPanel({
           </div>
         </div>
 
+        {/* Copy-Move Similarity Threshold */}
+        <div>
+          <div className="flex justify-between mb-1">
+            <span className="text-[#88857e]">COPY-MOVE DCT THRESHOLD</span>
+            <span className="text-[#00e5ff] font-bold">
+              {(params.copy_move_threshold * 100).toFixed(0)}%
+            </span>
+          </div>
+          <input
+            type="range"
+            min={0.65}
+            max={0.96}
+            step={0.02}
+            value={params.copy_move_threshold}
+            onChange={(e) =>
+              onChange({ ...params, copy_move_threshold: Number(e.target.value) })
+            }
+            className="w-full h-1.5 accent-[#00e5ff] cursor-pointer"
+          />
+        </div>
+
         {/* Morphological Kernel */}
         <div>
           <div className="flex justify-between mb-1">

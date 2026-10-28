@@ -587,11 +587,19 @@ export async function runClientSideDipPipeline(
   const { median: medGhost, mad: madGhost } = medianAndMad(smoothGhost);
   const ghostPeakZ = (percentileFloat(smoothGhost, 99.0) - medGhost) / (1.4826 * madGhost + 0.1);
 
+  const gainMod = Math.max(0.65, Math.min(1.45, params.ela_scale / 18.0));
   const s1Raw =
-    Math.min(48, Math.max(0, (p99ElaZ - 2.9) * 12.5)) +
-    Math.min(32, Math.max(0, (elaAnomPct - 1.2) * 4.2)) +
+    Math.min(48, Math.max(0, (p99ElaZ - 2.9) * 12.5 * gainMod)) +
+    Math.min(32, Math.max(0, (elaAnomPct - 1.2) * 4.2 * gainMod)) +
     Math.min(20, Math.max(0, (ghostPeakZ - 3.2) * 5.0));
   const s1 = Number(Math.min(98.5, Math.max(4.5, s1Raw + 5.0)).toFixed(1));
+
+  // Combine gamma-scaled direct ELA residual with Z-score so changing `ela_scale` visually updates the heatmap
+  const elaVisualMap = new Float32Array(w * h);
+  const gainFactor = Math.max(0.2, Math.min(3.5, params.ela_scale / 18.0));
+  for (let i = 0; i < w * h; i++) {
+    elaVisualMap[i] = 0.45 * Math.min(18.0, normEla[i] * gainFactor) + 0.55 * Math.min(12.0, zElaMap[i] * gainFactor);
+  }
 
   // ============================================================================
   // LAYER 2: 2D-DWT (HH1) & ADAPTIVE WIENER NOISE VARIANCE CONSISTENCY
@@ -928,7 +936,7 @@ export async function runClientSideDipPipeline(
       const { median: medCy } = medianAndMad(rowPhases);
       const ratio = 0.5 * (maxOffX / (medCx + 20) + maxOffY / (medCy + 20));
       bagGrid[gy * gw + gx] = ratio;
-      if (ratio > 1.32 && maxOffX > colPhases[0] * 1.08) {
+      if (ratio > 1.32 && (maxOffX > colPhases[0] * 1.08 || maxOffY > rowPhases[0] * 1.08)) {
         phaseMismatchBlocks++;
       }
     }
@@ -1027,13 +1035,16 @@ export async function runClientSideDipPipeline(
     headerInfo.exifPresent = true;
   }
 
+  // Evaluate statistical evidence from Layers 1..6 to distinguish clean re-saved photos from tampered ones
+  const maxSignalScore = Math.max(s1, s2, s3, s4, s5, s6);
+
   if (headerInfo.softwareSignature) {
     anomalies.push(`EXIF Software signature identifies editor: '${headerInfo.softwareSignature}'.`);
     s7Raw += 58.0;
   }
   if (!headerInfo.exifPresent && !headerInfo.cameraMakeModel) {
-    anomalies.push("Camera EXIF MakerNotes are stripped or absent from container header.");
-    s7Raw += 14.0;
+    anomalies.push("Camera EXIF MakerNotes are stripped (common on web/social-media exports).");
+    s7Raw += maxSignalScore >= 40 ? 18.0 : 6.0;
   }
   if (headerInfo.estimatedQuality < 78) {
     anomalies.push(`Heavy JPEG DQT quantization detected (Estimated Quality Q = ${headerInfo.estimatedQuality}).`);
@@ -1045,7 +1056,7 @@ export async function runClientSideDipPipeline(
   const s7 = Number(Math.min(95.0, Math.max(5.0, s7Raw)).toFixed(1));
 
   // Render Heatmaps for all 7 Layers
-  const l1Vis = floatMapToHeatmapDataUrl(zElaMap, w, h, params.colormap);
+  const l1Vis = floatMapToHeatmapDataUrl(elaVisualMap, w, h, params.colormap);
   const l2Vis = floatMapToHeatmapDataUrl(noiseMap, w, h, params.colormap);
   const l3Vis = floatMapToHeatmapDataUrl(smoothCopyMove, w, h, params.colormap, (c) => {
     c.strokeStyle = "#00e5ff";
@@ -1060,7 +1071,27 @@ export async function runClientSideDipPipeline(
   const l4Vis = floatMapToHeatmapDataUrl(smoothLapMap, w, h, params.colormap);
   const l5Vis = floatMapToHeatmapDataUrl(bagMap, w, h, params.colormap);
   const l6Vis = floatMapToHeatmapDataUrl(zEdgeMap, w, h, params.colormap);
-  const l7Vis = floatMapToHeatmapDataUrl(smoothEdge, w, h, params.colormap);
+  // Compute high-frequency 8x8 block variance map for Layer 7 visual output
+  const hfBlockMap = new Float32Array(w * h);
+  for (let by = 0; by < h; by += 8) {
+    for (let bx = 0; bx < w; bx += 8) {
+      let hfSum = 0;
+      let cnt = 0;
+      for (let dy = 0; dy < 8 && by + dy < h; dy++) {
+        for (let dx = 0; dx < 8 && bx + dx < w; dx++) {
+          hfSum += lapRaw[(by + dy) * w + (bx + dx)];
+          cnt++;
+        }
+      }
+      const val = hfSum / Math.max(1, cnt);
+      for (let dy = 0; dy < 8 && by + dy < h; dy++) {
+        for (let dx = 0; dx < 8 && bx + dx < w; dx++) {
+          hfBlockMap[(by + dy) * w + (bx + dx)] = val;
+        }
+      }
+    }
+  }
+  const l7Vis = floatMapToHeatmapDataUrl(hfBlockMap, w, h, params.colormap);
 
   const layers: LayerResult[] = [
     {

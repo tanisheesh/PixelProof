@@ -113,7 +113,22 @@ export default function TamperCanvas({
       ctx.putImageData(dst, dx, dy);
     }
 
-    setEditCount((c) => c + 1);
+    setEditCount((c) => {
+      const nextCount = c + 1;
+      // Auto-trigger forensic pipeline immediately after applying the canvas edit
+      canvas.toBlob(
+        (blob) => {
+          if (!blob) return;
+          const file = new File([blob], `sandbox-${activeTool}-edit-${nextCount}.jpg`, {
+            type: "image/jpeg",
+          });
+          onAnalyzeTamperedFile(file);
+        },
+        "image/jpeg",
+        0.93
+      );
+      return nextCount;
+    });
   };
 
   const handleRunForensics = () => {

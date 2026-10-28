@@ -11,6 +11,11 @@ and outputs a formatted Markdown table with:
 """
 
 import base64
+from pathlib import Path
+import sys
+
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+
 import cv2
 import numpy as np
 

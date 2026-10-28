@@ -145,10 +145,13 @@ export default function ImageStage({ report, activeLayer }: ImageStageProps) {
         ref={stageRef}
         onMouseMove={handleMouseMove}
         onMouseLeave={() => setCursorNorm(null)}
-        className="relative select-none bg-[#050505] flex items-center justify-center overflow-hidden cursor-crosshair"
-        style={{ minHeight: "280px", maxHeight: "540px" }}
+        className="relative select-none bg-[#050505] flex items-center justify-center overflow-hidden cursor-crosshair p-2 sm:p-4"
+        style={{ minHeight: "280px" }}
       >
-        <div className="relative w-full max-w-[740px] aspect-[4/3]">
+        <div
+          className="relative w-full max-w-[740px] max-h-[520px]"
+          style={{ aspectRatio: `${report.image_width} / ${report.image_height}` }}
+        >
           {/* Source RGB Image */}
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img

@@ -89,10 +89,11 @@ def run_ela_layer(
     p95_z = float(np.percentile(z_ela, 95.0))
     anomalous_area_ratio = float(np.mean(z_ela > 3.6))
     ghost_peak = float(np.percentile(ghost_variance, 99.0))
+    gain_mod = float(np.clip(scale_gain / 18.0, 0.65, 1.45))
 
     raw_score = (
-        min(45.0, max(0.0, (p99_z - 3.1) * 10.5))
-        + min(35.0, max(0.0, (anomalous_area_ratio - 0.015) * 450.0))
+        min(45.0, max(0.0, (p99_z - 3.1) * 10.5 * gain_mod))
+        + min(35.0, max(0.0, (anomalous_area_ratio - 0.015) * 450.0 * gain_mod))
         + min(20.0, max(0.0, (ghost_peak - 0.03) * 160.0))
     )
     score = round(float(np.clip(raw_score + 6.0, 6.0, 98.0)), 1)
