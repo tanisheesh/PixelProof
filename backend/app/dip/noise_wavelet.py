@@ -168,9 +168,17 @@ def run_noise_wavelet_layer(
     global_median_sigma = float(np.median(valid_sigmas))
     global_mad_sigma = float(np.median(np.abs(valid_sigmas - global_median_sigma))) + 1e-4
 
-    deviation_grid = np.abs(sigma_grid - global_median_sigma) / (
+    valid_lbp = lbp_var_grid[valid_mask] if np.any(valid_mask) else lbp_var_grid.ravel()
+    global_median_lbp = float(np.median(valid_lbp))
+    global_mad_lbp = float(np.median(np.abs(valid_lbp - global_median_lbp))) + 1.0
+
+    z_noise = np.abs(sigma_grid - global_median_sigma) / (
         1.4826 * global_mad_sigma + 0.12 * global_median_sigma
     )
+    z_lbp = np.abs(lbp_var_grid - global_median_lbp) / (
+        1.4826 * global_mad_lbp + 0.15 * global_median_lbp
+    )
+    deviation_grid = 0.80 * z_noise + 0.20 * z_lbp
 
     deviation_map = cv2.resize(deviation_grid, (w, h), interpolation=cv2.INTER_CUBIC)
     deviation_map = cv2.GaussianBlur(deviation_map, (15, 15), 3.0)

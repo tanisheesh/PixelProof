@@ -89,8 +89,9 @@ def run_copy_move_layer(
         eig_vars = singular_vals**2
         total_var = float(np.sum(eig_vars)) + 1e-6
         pca_explained_var_pct = float(np.sum(eig_vars[:6]) / total_var) * 100.0
-        # Project onto top-6 principal components
-        _ = mat_centered @ vt[:6, :].T
+        # Project onto top-6 principal components and append quantized PC1..PC3 to block features
+        pca_proj = np.round((mat_centered @ vt[:3, :].T) / 14.0).astype(np.int16)
+        features = [np.concatenate([f, pca_proj[i]]) for i, f in enumerate(features)]
 
     dct_cluster_matches = 0
     if len(features) > 20:

@@ -667,17 +667,25 @@ export async function runClientSideDipPipeline(
   const gh = Math.max(1, Math.floor((h - bsize) / stride) + 1);
   const gw = Math.max(1, Math.floor((w - bsize) / stride) + 1);
   const sigmaGrid = new Float32Array(gh * gw);
+  const lbpStdGrid = new Float32Array(gh * gw);
 
   for (let gy = 0; gy < gh; gy++) {
     const y0 = gy * stride;
     for (let gx = 0; gx < gw; gx++) {
       const x0 = gx * stride;
       const samples: number[] = [];
+      let lbpSum = 0;
+      let lbpSq = 0;
+      let lbpCnt = 0;
       for (let dy = 0; dy < bsize && y0 + dy < h; dy += 2) {
         for (let dx = 0; dx < bsize && x0 + dx < w; dx += 2) {
           const idx = (y0 + dy) * w + (x0 + dx);
           if (edgeMag[idx] < edgeP85 && lum[idx] > 10 && lum[idx] < 245) {
             samples.push(0.65 * hh1[idx] + 0.35 * wienerRes[idx]);
+            const lv = lbpMap[idx];
+            lbpSum += lv;
+            lbpSq += lv * lv;
+            lbpCnt++;
           }
         }
       }
@@ -686,15 +694,22 @@ export async function runClientSideDipPipeline(
           for (let dx = 0; dx < bsize && x0 + dx < w; dx += 4) {
             const idx = (y0 + dy) * w + (x0 + dx);
             samples.push(0.65 * hh1[idx] + 0.35 * wienerRes[idx]);
+            const lv = lbpMap[idx];
+            lbpSum += lv;
+            lbpSq += lv * lv;
+            lbpCnt++;
           }
         }
       }
       const { median: bMed, mad: bMad } = medianAndMad(samples);
       sigmaGrid[gy * gw + gx] = (bMad > 1e-3 ? bMad : bMed) / 0.6745;
+      const lMean = lbpSum / Math.max(1, lbpCnt);
+      lbpStdGrid[gy * gw + gx] = Math.sqrt(Math.max(0, lbpSq / Math.max(1, lbpCnt) - lMean * lMean));
     }
   }
 
   const { median: globalSigma, mad: globalSigmaMad } = medianAndMad(sigmaGrid);
+  const { median: globalLbpStd, mad: globalLbpMad } = medianAndMad(lbpStdGrid);
   const devGrid = new Float32Array(gh * gw);
   let noiseAnomBlocks = 0;
   let minSigma = Infinity;
@@ -702,7 +717,9 @@ export async function runClientSideDipPipeline(
   for (let i = 0; i < sigmaGrid.length; i++) {
     if (sigmaGrid[i] < minSigma) minSigma = sigmaGrid[i];
     if (sigmaGrid[i] > maxSigma) maxSigma = sigmaGrid[i];
-    const z = Math.abs(sigmaGrid[i] - globalSigma) / (1.4826 * globalSigmaMad + 0.14 * globalSigma + 0.05);
+    const zNoise = Math.abs(sigmaGrid[i] - globalSigma) / (1.4826 * globalSigmaMad + 0.14 * globalSigma + 0.05);
+    const zLbp = Math.abs(lbpStdGrid[i] - globalLbpStd) / (1.4826 * globalLbpMad + 0.15 * globalLbpStd + 1.0);
+    const z = 0.78 * zNoise + 0.22 * zLbp;
     devGrid[i] = z;
     if (z > 2.75) noiseAnomBlocks++;
   }
@@ -910,8 +927,9 @@ export async function runClientSideDipPipeline(
     }
   }
 
-  // Compute local 32x32 periodic autocorrelation ratio (lags 2 and 4 px) on Laplacian residual
+  // Compute local 32x32 periodic autocorrelation ratio with 8x8 Axial Notch / Band-Reject suppression
   const resampGrid = new Float32Array(gh * gw);
+  let notchAttenSum = 0;
   for (let gy = 0; gy < gh; gy++) {
     const y0 = gy * stride;
     for (let gx = 0; gx < gw; gx++) {
@@ -919,18 +937,26 @@ export async function runClientSideDipPipeline(
       let energy0 = 1e-3;
       let corrLag2 = 0;
       let corrLag4 = 0;
-      for (let dy = 0; dy < bsize - 4 && y0 + dy + 4 < h; dy += 2) {
-        for (let dx = 0; dx < bsize - 4 && x0 + dx + 4 < w; dx += 2) {
+      let corrGrid8 = 0;
+      for (let dy = 0; dy < bsize - 8 && y0 + dy + 8 < h; dy += 2) {
+        for (let dx = 0; dx < bsize - 8 && x0 + dx + 8 < w; dx += 2) {
           const idx = (y0 + dy) * w + (x0 + dx);
           const v = lapRaw[idx];
           energy0 += v * v;
           corrLag2 += v * lapRaw[idx + 2] + v * lapRaw[(y0 + dy + 2) * w + (x0 + dx)];
           corrLag4 += v * lapRaw[idx + 4] + v * lapRaw[(y0 + dy + 4) * w + (x0 + dx)];
+          corrGrid8 += v * lapRaw[idx + 8] + v * lapRaw[(y0 + dy + 8) * w + (x0 + dx)];
         }
       }
-      resampGrid[gy * gw + gx] = Math.max(corrLag2, corrLag4) / energy0;
+      // Axial Notch Filter: subtract baseline 8-pixel JPEG block harmonic from lag-2/4 Band-Pass energy
+      const bandPassPeak = Math.max(0, Math.max(corrLag2, corrLag4) - 0.35 * corrGrid8);
+      resampGrid[gy * gw + gx] = bandPassPeak / energy0;
+      notchAttenSum += (corrGrid8 + 1) / (bandPassPeak + 1);
     }
   }
+  const notchAttenDb = Number(
+    (10 * Math.log10(Math.max(1.05, notchAttenSum / Math.max(1, resampGrid.length)))).toFixed(2)
+  );
   const { median: medResamp, mad: madResamp } = medianAndMad(resampGrid);
   const zResampGrid = new Float32Array(gh * gw);
   let resampAnomBlocks = 0;
@@ -1274,6 +1300,7 @@ export async function runClientSideDipPipeline(
       histogram_data: l4Vis.histogram,
       metrics: {
         block_p98_z: Number(p98ResampZ.toFixed(2)),
+        notch_attenuation_db: notchAttenDb,
         anomalous_blocks_pct: Number(resampAnomPct.toFixed(2)),
         filter_mode: "Band-Pass + Notch",
       },
