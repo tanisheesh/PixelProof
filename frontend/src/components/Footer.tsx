@@ -19,6 +19,15 @@ export default function Footer() {
             >
               Tanish Poddar
             </a>{" "}
+            &amp;{" "}
+            <a
+              href="https://github.com/krish-codess"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-[#f2efe9] hover:text-[#00e5ff] underline underline-offset-2"
+            >
+              Krish Gohel (@krish-codess)
+            </a>{" "}
             · YCbCr ELA · 2D-DWT Wavelet Noise · 16×16 Block-DCT + ORB · 2D-FFT Spectrum · Otsu Morphology
           </div>
         </div>

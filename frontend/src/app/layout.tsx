@@ -20,9 +20,12 @@ export const metadata: Metadata = {
   description:
     "Multi-layer classical Digital Image Processing (DIP) image forensics workbench. Detects splicing, copy-move cloning, resampling, and retouching via YCbCr ELA, 2D-DWT Wavelet Noise Variance, Block-DCT + ORB, 2D-FFT Spectrum & Otsu Morphology.",
   applicationName: "PixelProof",
-  authors: [{ name: "Tanish Poddar", url: "https://tanisheesh.in" }],
-  creator: "Tanish Poddar",
-  publisher: "Tanish Poddar",
+  authors: [
+    { name: "Tanish Poddar", url: "https://tanisheesh.in" },
+    { name: "Krish Gohel", url: "https://github.com/krish-codess" },
+  ],
+  creator: "Tanish Poddar & Krish Gohel",
+  publisher: "Tanish Poddar & Krish Gohel",
   keywords: [
     "PixelProof",
     "Image Forgery Detection",
@@ -84,11 +87,18 @@ const jsonLd = {
   operatingSystem: "Web, Linux, Windows, macOS, Docker",
   applicationCategory: "SecurityApplication",
   url: SITE_URL,
-  author: {
-    "@type": "Person",
-    name: "Tanish Poddar",
-    url: "https://tanisheesh.in",
-  },
+  author: [
+    {
+      "@type": "Person",
+      name: "Tanish Poddar",
+      url: "https://tanisheesh.in",
+    },
+    {
+      "@type": "Person",
+      name: "Krish Gohel",
+      url: "https://github.com/krish-codess",
+    },
+  ],
   description:
     "Multi-layer classical Digital Image Processing (DIP) image forgery and tampering detection engine.",
   offers: {
