@@ -6,6 +6,6 @@ scipy>=1.18.1
 opencv-python-headless>=5.0.0.93
 PyWavelets>=1.10.0
 Pillow>=13.0.0
-pydantic>=2.14.1
+pydantic>=2.14.2
 pytest>=9.1.1
 httpx>=0.28.1
