@@ -17,16 +17,7 @@ export default function Footer() {
               rel="noopener noreferrer"
               className="text-[#f2efe9] hover:text-[#00e5ff] underline underline-offset-2"
             >
-              Tanish Poddar
-            </a>{" "}
-            &amp;{" "}
-            <a
-              href="https://github.com/krish-codess"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-[#f2efe9] hover:text-[#00e5ff] underline underline-offset-2"
-            >
-              Krish Gohel (@krish-codess)
+              Tanish Poddar (@tanisheesh)
             </a>{" "}
             · Classical Digital Image Processing Forensics
           </div>

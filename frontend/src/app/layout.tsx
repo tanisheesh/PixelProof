@@ -22,10 +22,9 @@ export const metadata: Metadata = {
   applicationName: "PixelProof",
   authors: [
     { name: "Tanish Poddar", url: "https://tanisheesh.in" },
-    { name: "Krish Gohel", url: "https://github.com/krish-codess" },
   ],
-  creator: "Tanish Poddar & Krish Gohel",
-  publisher: "Tanish Poddar & Krish Gohel",
+  creator: "Tanish Poddar",
+  publisher: "Tanish Poddar",
   keywords: [
     "PixelProof",
     "Image Forgery Detection",
@@ -92,11 +91,6 @@ const jsonLd = {
       "@type": "Person",
       name: "Tanish Poddar",
       url: "https://tanisheesh.in",
-    },
-    {
-      "@type": "Person",
-      name: "Krish Gohel",
-      url: "https://github.com/krish-codess",
     },
   ],
   description:
