@@ -27,6 +27,7 @@ interface CaseDetail {
   scenario: string;
   detectionReason: string;
   whatToLookFor: string;
+  defaultFilter: "composite" | "boundary" | "copymove" | "noise" | "ela";
 }
 
 const CASE_DETAILS: Record<string, CaseDetail> = {
@@ -43,6 +44,7 @@ const CASE_DETAILS: Record<string, CaseDetail> = {
       "Because the balloon was pasted from elsewhere, its boundary edges have an unnatural sharp cut-and-paste seam (detected by Sobel Edge Filter & ELA Difference).",
     whatToLookFor:
       "In Panel 1 you see the suspect image with the balloon. In Panel 2 (Filter X-Ray), the balloon's border glows bright. In Panel 3, PixelProof placed a RED BOUNDING BOX [R1 // 94%] around the fake balloon!",
+    defaultFilter: "boundary",
   },
   copymove_crate: {
     id: "copymove_crate",
@@ -57,6 +59,7 @@ const CASE_DETAILS: Record<string, CaseDetail> = {
       "PixelProof's Keypoint & Block Matching algorithm compared all regions across the image and found two identical feature patterns.",
     whatToLookFor:
       "In Panel 3, PixelProof drew CYAN LINK LINES connecting the real original tree (Green box on left) to the fake cloned tree (Red box on right)!",
+    defaultFilter: "copymove",
   },
   retouch_airbrush: {
     id: "retouch_airbrush",
@@ -71,6 +74,7 @@ const CASE_DETAILS: Record<string, CaseDetail> = {
       "All real camera photos have invisible microscopic sensor grain (noise). The blur brush wiped out that natural grain, leaving an unnaturally smooth 'noise cavity'.",
     whatToLookFor:
       "In Panel 2, the erased window shows up as a dark noise cavity. In Panel 3, PixelProof marked the erased window location with a RED BOUNDING BOX [R1 // 88%]!",
+    defaultFilter: "noise",
   },
   authentic_camera: {
     id: "authentic_camera",
@@ -85,13 +89,37 @@ const CASE_DETAILS: Record<string, CaseDetail> = {
       "PixelProof checked edge continuity, block similarity, and noise variance across the entire photo. Everything is completely uniform and natural.",
     whatToLookFor:
       "Panel 3 shows GREEN CLEAN status with ZERO bounding boxes. Result: 100% Genuine Authentic Photo!",
+    defaultFilter: "composite",
+  },
+};
+
+const FILTER_INFO: Record<string, { label: string; whatItShows: string }> = {
+  boundary: {
+    label: "EDGE SEAM",
+    whatItShows: "🔍 Glowing outline exposes sharp cut-and-paste boundary seam",
+  },
+  copymove: {
+    label: "CLONES",
+    whatItShows: "🔍 Matching feature map connects duplicated source to target",
+  },
+  noise: {
+    label: "NOISE / BLUR",
+    whatItShows: "🔍 Dark cavity highlights where camera grain was smoothed out",
+  },
+  ela: {
+    label: "ELA DIFFERENCE",
+    whatItShows: "🔍 Bright glowing residual shows mismatched compression history",
+  },
+  composite: {
+    label: "ALL FILTERS",
+    whatItShows: "🔍 Multi-layer fusion combining edge, noise & compression anomalies",
   },
 };
 
 export default function ForgeryDetectorPage() {
   const [selectedPresetId, setSelectedPresetId] = useState<string>("splice_badge");
   const [report, setReport] = useState<ForensicReport | null>(null);
-  const [activeMethod, setActiveMethod] = useState<"composite" | "boundary" | "copymove" | "noise" | "ela">("composite");
+  const [activeMethod, setActiveMethod] = useState<"composite" | "boundary" | "copymove" | "noise" | "ela">("boundary");
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
@@ -102,6 +130,7 @@ export default function ForgeryDetectorPage() {
     await fetchPresets();
     const initialId = "splice_badge";
     setSelectedPresetId(initialId);
+    setActiveMethod("boundary");
     const { report: rep } = await analyzePreset(initialId, DEFAULT_PARAMS);
     setReport(rep);
     setIsLoading(false);
@@ -114,6 +143,8 @@ export default function ForgeryDetectorPage() {
 
   const handleSelectPreset = async (presetId: string) => {
     setSelectedPresetId(presetId);
+    const targetFilter = CASE_DETAILS[presetId]?.defaultFilter || "composite";
+    setActiveMethod(targetFilter);
     setErrorMsg(null);
     setIsLoading(true);
     const { report: rep } = await analyzePreset(presetId, DEFAULT_PARAMS);
@@ -128,6 +159,7 @@ export default function ForgeryDetectorPage() {
     }
     setErrorMsg(null);
     setSelectedPresetId("");
+    setActiveMethod("composite");
     setIsLoading(true);
     try {
       const { report: rep } = await analyzeUploadedFile(file, DEFAULT_PARAMS);
@@ -337,7 +369,9 @@ export default function ForgeryDetectorPage() {
               <div className="panel-frame flex flex-col">
                 <div className="panel-header">
                   <span>PANEL 2 // DIP FILTER X-RAY</span>
-                  <span className="text-[#00e5ff] font-bold">{activeMethod.toUpperCase()}</span>
+                  <span className="text-[#00e5ff] font-bold">
+                    {FILTER_INFO[activeMethod]?.label || "FILTER"}
+                  </span>
                 </div>
                 <div className="p-3 bg-[#050505] flex-1 flex items-center justify-center min-h-[260px]">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -347,65 +381,39 @@ export default function ForgeryDetectorPage() {
                     className="max-h-[320px] w-full object-contain"
                   />
                 </div>
-                {/* Method Switcher Buttons */}
-                <div className="grid grid-cols-3 border-t border-[#222220] bg-[#080808] divide-x divide-[#222220]">
-                  <button
-                    type="button"
-                    onClick={() => setActiveMethod("composite")}
-                    className={`p-2 font-mono text-[10px] uppercase cursor-pointer ${
-                      activeMethod === "composite"
-                        ? "bg-[#00e5ff] text-[#080808] font-bold"
-                        : "text-[#88857e] hover:text-[#f2efe9]"
-                    }`}
-                  >
-                    ALL FILTERS
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setActiveMethod("boundary")}
-                    className={`p-2 font-mono text-[10px] uppercase cursor-pointer ${
-                      activeMethod === "boundary"
-                        ? "bg-[#00e5ff] text-[#080808] font-bold"
-                        : "text-[#88857e] hover:text-[#f2efe9]"
-                    }`}
-                  >
-                    EDGE SEAM
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setActiveMethod("copymove")}
-                    className={`p-2 font-mono text-[10px] uppercase cursor-pointer ${
-                      activeMethod === "copymove"
-                        ? "bg-[#00e5ff] text-[#080808] font-bold"
-                        : "text-[#88857e] hover:text-[#f2efe9]"
-                    }`}
-                  >
-                    CLONES
-                  </button>
+
+                {/* Filter Explanation Subtitle */}
+                <div className="bg-[#0b0b0b] px-3 py-1.5 border-t border-[#222220] text-center font-mono text-[10px] text-[#00e5ff]">
+                  {FILTER_INFO[activeMethod]?.whatItShows}
                 </div>
-                <div className="grid grid-cols-2 border-t border-[#222220] bg-[#080808] divide-x divide-[#222220]">
-                  <button
-                    type="button"
-                    onClick={() => setActiveMethod("noise")}
-                    className={`p-2 font-mono text-[10px] uppercase cursor-pointer ${
-                      activeMethod === "noise"
-                        ? "bg-[#00e5ff] text-[#080808] font-bold"
-                        : "text-[#88857e] hover:text-[#f2efe9]"
-                    }`}
-                  >
-                    NOISE / BLUR
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setActiveMethod("ela")}
-                    className={`p-2 font-mono text-[10px] uppercase cursor-pointer ${
-                      activeMethod === "ela"
-                        ? "bg-[#00e5ff] text-[#080808] font-bold"
-                        : "text-[#88857e] hover:text-[#f2efe9]"
-                    }`}
-                  >
-                    ELA DIFFERENCE
-                  </button>
+
+                {/* Clean Filter Lens Switcher Row */}
+                <div className="border-t border-[#222220] bg-[#080808] p-2">
+                  <div className="text-[9px] font-mono text-[#88857e] px-1 mb-1 uppercase">
+                    SWITCH FILTER LENS:
+                  </div>
+                  <div className="grid grid-cols-5 gap-1">
+                    {[
+                      { id: "boundary" as const, label: "EDGE SEAM" },
+                      { id: "copymove" as const, label: "CLONES" },
+                      { id: "noise" as const, label: "NOISE/BLUR" },
+                      { id: "ela" as const, label: "ELA" },
+                      { id: "composite" as const, label: "ALL" },
+                    ].map((btn) => (
+                      <button
+                        key={btn.id}
+                        type="button"
+                        onClick={() => setActiveMethod(btn.id)}
+                        className={`py-1 px-0.5 text-center font-mono text-[9px] font-bold uppercase transition-colors cursor-pointer border ${
+                          activeMethod === btn.id
+                            ? "bg-[#00e5ff] text-[#080808] border-[#00e5ff]"
+                            : "bg-[#111111] text-[#88857e] border-[#222220] hover:text-[#f2efe9] hover:bg-[#1a1a1a]"
+                        }`}
+                      >
+                        {btn.label}
+                      </button>
+                    ))}
+                  </div>
                 </div>
               </div>
 
