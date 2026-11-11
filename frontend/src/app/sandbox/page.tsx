@@ -37,23 +37,22 @@ export default function SandboxPage() {
   const isTampered = report ? report.verdict === "TAMPERED" : false;
 
   return (
-    <div className="min-h-screen flex flex-col overflow-x-hidden">
+    <div className="min-h-screen flex flex-col overflow-x-hidden bg-[#080808] text-[#f2efe9]">
       <Navbar />
 
-      <main className="flex-1 max-w-[1400px] w-full mx-auto px-3 sm:px-6 lg:px-8 space-y-6">
+      <main className="flex-1 max-w-[1400px] w-full mx-auto px-3 sm:px-6 lg:px-8 space-y-6 py-4">
         {/* Header */}
-        <section className="border-x border-b border-[#222220] bg-[#0e0e0e] p-5 sm:p-7 flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+        <section className="border border-[#222220] bg-[#0e0e0e] p-5 sm:p-7 flex flex-col lg:flex-row lg:items-center justify-between gap-4">
           <div>
-            <div className="font-mono text-[10px] sm:text-[11px] uppercase tracking-widest text-[#00e5ff] mb-1">
+            <div className="font-mono text-[10px] sm:text-[11px] uppercase tracking-widest text-[#00e5ff] mb-1 font-bold">
               {"// [02] INTERACTIVE LIVE TAMPER SANDBOX"}
             </div>
-            <h1 className="font-display font-black text-3xl sm:text-5xl uppercase tracking-tight text-[#f2efe9]">
-              CREATE A FORGERY &amp; WATCH IT GET DETECTED
+            <h1 className="font-display font-black text-2xl sm:text-4xl uppercase tracking-tight text-[#f2efe9]">
+              CREATE A FORGERY &amp; WATCH IT GET DETECTED LIVE
             </h1>
-            <p className="text-xs sm:text-sm text-[#88857e] mt-1 max-w-2xl">
-              Select an attack tool (Clone Stamp, Foreign Splice, or Gaussian Blur), click on the
-              canvas to tamper with the clean photo, and the detector will immediately isolate your
-              exact edit below.
+            <p className="text-xs sm:text-sm text-[#88857e] mt-1 max-w-2xl leading-relaxed">
+              Select an attack tool (Clone Tree, Paste Balloon, or Blur/Erase), click anywhere on the
+              clean photo to edit it, and watch the detector immediately isolate your exact edit with a Red Box!
             </p>
           </div>
 
@@ -69,7 +68,7 @@ export default function SandboxPage() {
         {report && (
           <section className="panel-frame p-5 space-y-5">
             <div className="panel-header">
-              <span>SANDBOX_DETECTION_RESULT // REAL-TIME LOCALIZATION</span>
+              <span>STEP 2: INSTANT FORGERY DETECTION RESULT</span>
               <span
                 className={`px-2 py-0.5 border font-bold text-xs ${
                   isTampered
@@ -83,46 +82,59 @@ export default function SandboxPage() {
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
               {/* Original Edited Canvas */}
-              <div className="border border-[#222220] bg-[#080808] p-3 flex flex-col items-center">
-                <div className="font-mono text-[10px] text-[#88857e] mb-2 uppercase">
-                  1. YOUR TAMPERED IMAGE
+              <div className="panel-frame flex flex-col">
+                <div className="panel-header">
+                  <span>1. YOUR TAMPERED PHOTO</span>
+                  <span className="text-[#88857e]">EDITED INPUT</span>
                 </div>
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={report.original_preview_base64}
-                  alt="Tampered Canvas"
-                  className="max-h-[260px] w-full object-contain"
-                />
+                <div className="p-3 bg-[#050505] flex-1 flex items-center justify-center min-h-[240px]">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={report.original_preview_base64}
+                    alt="Tampered Canvas"
+                    className="max-h-[280px] w-full object-contain"
+                  />
+                </div>
+                <div className="border-t border-[#222220] bg-[#0b0b0b] p-2 text-center font-mono text-[10px] text-[#88857e]">
+                  PHOTO AFTER YOUR CANVAS EDIT
+                </div>
               </div>
 
               {/* Anomaly Heatmap */}
-              <div className="border border-[#222220] bg-[#080808] p-3 flex flex-col items-center">
-                <div className="font-mono text-[10px] text-[#00e5ff] mb-2 uppercase">
-                  2. DIP RESIDUAL HEATMAP
+              <div className="panel-frame flex flex-col">
+                <div className="panel-header">
+                  <span>2. DIP RESIDUAL HEATMAP</span>
+                  <span className="text-[#00e5ff] font-bold">X-RAY FILTER</span>
                 </div>
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={report.composite_heatmap_base64}
-                  alt="DIP Heatmap"
-                  className="max-h-[260px] w-full object-contain"
-                />
+                <div className="p-3 bg-[#050505] flex-1 flex items-center justify-center min-h-[240px]">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={report.composite_heatmap_base64}
+                    alt="DIP Heatmap"
+                    className="max-h-[280px] w-full object-contain"
+                  />
+                </div>
+                <div className="border-t border-[#222220] bg-[#0b0b0b] p-2 text-center font-mono text-[10px] text-[#00e5ff]">
+                  GLOWING REGION HIGHLIGHTS DETECTED TAMPERING
+                </div>
               </div>
 
               {/* Detected Bounding Box */}
-              <div className="border border-[#222220] bg-[#080808] p-3 flex flex-col items-center relative">
-                <div className="font-mono text-[10px] text-[#ff2a2a] mb-2 uppercase font-bold">
-                  3. DETECTED TAMPER BOUNDING BOX
+              <div className="panel-frame flex flex-col">
+                <div className="panel-header">
+                  <span>3. DETECTED TAMPER BOUNDING BOX</span>
+                  <span className="text-[#ff2a2a] font-bold">LOCALIZED</span>
                 </div>
-                <div className="relative w-full flex items-center justify-center">
+                <div className="relative p-3 bg-[#050505] flex-1 flex items-center justify-center min-h-[240px]">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
                     src={report.original_preview_base64}
                     alt="Detected Overlay"
-                    className="max-h-[260px] w-full object-contain"
+                    className="max-h-[280px] w-full object-contain"
                   />
                   <svg
                     viewBox={`0 0 ${report.image_width} ${report.image_height}`}
-                    className="absolute inset-0 max-h-[260px] w-full h-full pointer-events-none"
+                    className="absolute inset-3 max-h-[280px] w-full h-full pointer-events-none"
                     preserveAspectRatio="xMidYMid meet"
                   >
                     {report.clone_vectors.map((vec: CloneVector, idx: number) => (
@@ -133,11 +145,11 @@ export default function SandboxPage() {
                           x2={vec.dst_x}
                           y2={vec.dst_y}
                           stroke="#00E5FF"
-                          strokeWidth="2.5"
+                          strokeWidth="3"
                           strokeDasharray="4 2"
                         />
-                        <rect x={vec.src_x - 3} y={vec.src_y - 3} width="6" height="6" fill="#00E676" />
-                        <rect x={vec.dst_x - 3} y={vec.dst_y - 3} width="6" height="6" fill="#FF2A2A" />
+                        <rect x={vec.src_x - 4} y={vec.src_y - 4} width="8" height="8" fill="#00E676" />
+                        <rect x={vec.dst_x - 4} y={vec.dst_y - 4} width="8" height="8" fill="#FF2A2A" />
                       </g>
                     ))}
                     {report.bounding_boxes.map((box: BoundingBox) => (
@@ -149,12 +161,12 @@ export default function SandboxPage() {
                           height={box.height}
                           fill="rgba(255, 42, 42, 0.22)"
                           stroke="#FF2A2A"
-                          strokeWidth="2.5"
+                          strokeWidth="3"
                         />
                         <rect
                           x={box.x}
                           y={Math.max(0, box.y - 18)}
-                          width={Math.min(report.image_width - box.x, 140)}
+                          width={Math.min(report.image_width - box.x, 160)}
                           height="18"
                           fill="#FF2A2A"
                         />
@@ -166,11 +178,14 @@ export default function SandboxPage() {
                           fontFamily="monospace"
                           fontWeight="bold"
                         >
-                          {`R${box.id} // ${box.confidence.toFixed(0)}%`}
+                          {`FAKE REGION // ${box.confidence.toFixed(0)}%`}
                         </text>
                       </g>
                     ))}
                   </svg>
+                </div>
+                <div className="border-t border-[#222220] bg-[#0b0b0b] p-2 text-center font-mono text-[10px] text-[#ff2a2a] font-bold">
+                  RED BOUNDING BOX MARKS YOUR EXACT EDIT
                 </div>
               </div>
             </div>
@@ -178,7 +193,7 @@ export default function SandboxPage() {
             {/* Explanation */}
             <div className="border border-[#222220] bg-[#0b0b0b] p-4 text-xs font-mono text-[#88857e]">
               <strong className="text-[#f2efe9] uppercase block mb-1">
-                EXPLANATION OF WHAT HAPPENED:
+                DETECTION EXPLANATION:
               </strong>
               {report.executive_summary}
             </div>

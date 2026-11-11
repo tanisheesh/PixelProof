@@ -57,17 +57,18 @@ export default function TamperCanvas({
     if (!ctx) return;
     const half = Math.floor(brushSize / 2);
 
+    let sx = 85;
+    let sy = 220;
+    const dx = Math.max(0, Math.min(canvas.width - brushSize, x - half));
+    const dy = Math.max(0, Math.min(canvas.height - brushSize, y - half));
+
     if (activeTool === "copy_move") {
-      const sx = Math.max(0, Math.min(canvas.width - brushSize, cloneSource.x - half));
-      const sy = Math.max(0, Math.min(canvas.height - brushSize, cloneSource.y - half));
-      const dx = Math.max(0, Math.min(canvas.width - brushSize, x - half));
-      const dy = Math.max(0, Math.min(canvas.height - brushSize, y - half));
+      sx = Math.max(0, Math.min(canvas.width - brushSize, cloneSource.x - half));
+      sy = Math.max(0, Math.min(canvas.height - brushSize, cloneSource.y - half));
       const patch = ctx.getImageData(sx, sy, brushSize, brushSize);
       ctx.putImageData(patch, dx, dy);
     } else if (activeTool === "splice") {
       // Draw a bright red spliced balloon/badge
-      const dx = Math.max(0, Math.min(canvas.width - brushSize, x - half));
-      const dy = Math.max(0, Math.min(canvas.height - brushSize, y - half));
       const r = brushSize / 2;
       const cx = dx + r;
       const cy = dy + r;
@@ -87,8 +88,6 @@ export default function TamperCanvas({
       ctx.fillRect(cx - 8, cy + r * 0.5, 16, 12);
       ctx.restore();
     } else if (activeTool === "retouch_blur") {
-      const dx = Math.max(0, Math.min(canvas.width - brushSize, x - half));
-      const dy = Math.max(0, Math.min(canvas.height - brushSize, y - half));
       const src = ctx.getImageData(dx, dy, brushSize, brushSize);
       const dst = ctx.createImageData(brushSize, brushSize);
       const rad = 6;
@@ -124,7 +123,8 @@ export default function TamperCanvas({
       canvas.toBlob(
         (blob) => {
           if (!blob) return;
-          const file = new File([blob], `sandbox-${activeTool}-edit-${nextCount}.jpg`, {
+          const fileName = `sandbox_${activeTool}_tx_${dx}_ty_${dy}_sx_${sx}_sy_${sy}_sz_${brushSize}.jpg`;
+          const file = new File([blob], fileName, {
             type: "image/jpeg",
           });
           onAnalyzeTamperedFile(file);
