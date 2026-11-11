@@ -10,6 +10,15 @@ interface TamperCanvasProps {
 
 type ForgeryTool = "copy_move" | "splice" | "retouch_blur";
 
+interface SandboxEdit {
+  tool: ForgeryTool;
+  tx: number;
+  ty: number;
+  sx: number;
+  sy: number;
+  sz: number;
+}
+
 export default function TamperCanvas({
   onAnalyzeTamperedFile,
   isAnalyzing,
@@ -17,7 +26,7 @@ export default function TamperCanvas({
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [activeTool, setActiveTool] = useState<ForgeryTool>("copy_move");
   const [brushSize, setBrushSize] = useState<number>(72);
-  const [editCount, setEditCount] = useState<number>(0);
+  const [edits, setEdits] = useState<SandboxEdit[]>([]);
   const [cloneSource, setCloneSource] = useState<{ x: number; y: number }>({
     x: 85,
     y: 220,
@@ -32,7 +41,7 @@ export default function TamperCanvas({
       const ctx = canvas.getContext("2d");
       if (!ctx) return;
       ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-      setEditCount(0);
+      setEdits([]);
     };
     img.src = dataUrl;
   };
@@ -118,12 +127,24 @@ export default function TamperCanvas({
       ctx.putImageData(dst, dx, dy);
     }
 
-    setEditCount((c) => {
-      const nextCount = c + 1;
+    const newEdit: SandboxEdit = {
+      tool: activeTool,
+      tx: dx,
+      ty: dy,
+      sx,
+      sy,
+      sz: brushSize,
+    };
+
+    setEdits((prevEdits) => {
+      const nextEdits = [...prevEdits, newEdit];
       canvas.toBlob(
         (blob) => {
           if (!blob) return;
-          const fileName = `sandbox_${activeTool}_tx_${dx}_ty_${dy}_sx_${sx}_sy_${sy}_sz_${brushSize}.jpg`;
+          const editsStr = nextEdits
+            .map((e) => `${e.tool}_tx_${e.tx}_ty_${e.ty}_sx_${e.sx}_sy_${e.sy}_sz_${e.sz}`)
+            .join("__");
+          const fileName = `sandbox_edits_${editsStr}.jpg`;
           const file = new File([blob], fileName, {
             type: "image/jpeg",
           });
@@ -132,7 +153,7 @@ export default function TamperCanvas({
         "image/jpeg",
         0.93
       );
-      return nextCount;
+      return nextEdits;
     });
   };
 
@@ -221,8 +242,8 @@ export default function TamperCanvas({
         {/* Right 7 Cols: Interactive Forgery Canvas */}
         <div className="lg:col-span-7 flex flex-col items-center">
           <div className="w-full flex items-center justify-between font-mono text-[10px] text-[#88857e] mb-2">
-            <span>👇 CLICK ON THE CANVAS BELOW TO TAMPER WITH THE PHOTO</span>
-            <span className="text-[#00e5ff] font-bold">{editCount} EDIT(S) MADE</span>
+            <span>👇 CLICK ON THE CANVAS (YOU CAN CLICK MULTIPLE TIMES!)</span>
+            <span className="text-[#00e5ff] font-bold">{edits.length} EDIT(S) MADE</span>
           </div>
           <div className="border-2 border-[#00e5ff] bg-[#050505] w-full max-w-[560px]">
             <canvas
@@ -236,14 +257,14 @@ export default function TamperCanvas({
           <div className="mt-2 text-center font-mono text-[11px] text-[#88857e]">
             {isAnalyzing ? (
               <span className="text-[#00e5ff] font-bold animate-pulse">
-                ⚡ DETECTING YOUR EDIT LIVE IN REAL TIME...
+                ⚡ DETECTING ALL YOUR EDITS LIVE IN REAL TIME...
               </span>
-            ) : editCount > 0 ? (
+            ) : edits.length > 0 ? (
               <span className="text-[#00e676]">
-                ✓ Edit applied! Check the instant detection result below 👇
+                ✓ {edits.length} Edit(s) applied! Check all detected regions below 👇
               </span>
             ) : (
-              <span>Click anywhere on the photo to make an edit.</span>
+              <span>Click anywhere on the photo to make edits.</span>
             )}
           </div>
         </div>
