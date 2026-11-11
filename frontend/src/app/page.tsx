@@ -17,6 +17,77 @@ const DEFAULT_PARAMS: AnalysisParams = {
   colormap: "inferno",
 };
 
+interface CaseDetail {
+  id: string;
+  tag: string;
+  badge: string;
+  badgeColor: string;
+  title: string;
+  subtitle: string;
+  scenario: string;
+  detectionReason: string;
+  whatToLookFor: string;
+}
+
+const CASE_DETAILS: Record<string, CaseDetail> = {
+  splice_badge: {
+    id: "splice_badge",
+    tag: "CASE 01",
+    badge: "TAMPERED / FAKE",
+    badgeColor: "border-[#ff2a2a] text-[#ff2a2a] bg-[#ff2a2a]/10",
+    title: "SPLICING ATTACK (PASTED HOT-AIR BALLOON)",
+    subtitle: "A red balloon from another photo was pasted into the sky",
+    scenario:
+      "Someone took a clean landscape photo (Sky, Mountains, Barn, 1 Tree), cut a Red Hot-Air Balloon from another image, and pasted it into the sky at [X: 300, Y: 48].",
+    detectionReason:
+      "Because the balloon was pasted from elsewhere, its boundary edges have an unnatural sharp cut-and-paste seam (detected by Sobel Edge Filter & ELA Difference).",
+    whatToLookFor:
+      "In Panel 1 you see the suspect image with the balloon. In Panel 2 (Filter X-Ray), the balloon's border glows bright. In Panel 3, PixelProof placed a RED BOUNDING BOX [R1 // 94%] around the fake balloon!",
+  },
+  copymove_crate: {
+    id: "copymove_crate",
+    tag: "CASE 02",
+    badge: "TAMPERED / FAKE",
+    badgeColor: "border-[#ff2a2a] text-[#ff2a2a] bg-[#ff2a2a]/10",
+    title: "COPY-MOVE CLONING (DUPLICATED PINE TREE)",
+    subtitle: "The pine tree on the left was copied and pasted on the right meadow",
+    scenario:
+      "The attacker copied the pine tree from the left side of the photo and pasted an exact duplicate clone onto the right meadow to make the scene look different.",
+    detectionReason:
+      "PixelProof's Keypoint & Block Matching algorithm compared all regions across the image and found two identical feature patterns.",
+    whatToLookFor:
+      "In Panel 3, PixelProof drew CYAN LINK LINES connecting the real original tree (Green box on left) to the fake cloned tree (Red box on right)!",
+  },
+  retouch_airbrush: {
+    id: "retouch_airbrush",
+    tag: "CASE 03",
+    badge: "TAMPERED / FAKE",
+    badgeColor: "border-[#ff2a2a] text-[#ff2a2a] bg-[#ff2a2a]/10",
+    title: "RETOUCHING / ERASING (WINDOW REMOVED)",
+    subtitle: "The window on the barn was erased using a blur/healing tool",
+    scenario:
+      "The attacker wanted to hide the yellow barn window, so they used a blur / healing brush to paint over it with smooth brown color.",
+    detectionReason:
+      "All real camera photos have invisible microscopic sensor grain (noise). The blur brush wiped out that natural grain, leaving an unnaturally smooth 'noise cavity'.",
+    whatToLookFor:
+      "In Panel 2, the erased window shows up as a dark noise cavity. In Panel 3, PixelProof marked the erased window location with a RED BOUNDING BOX [R1 // 88%]!",
+  },
+  authentic_camera: {
+    id: "authentic_camera",
+    tag: "CASE 04",
+    badge: "AUTHENTIC / GENUINE",
+    badgeColor: "border-[#00e676] text-[#00e676] bg-[#00e676]/10",
+    title: "AUTHENTIC ORIGINAL (UNTOUCHED PHOTO)",
+    subtitle: "A real, genuine camera photo with zero edits",
+    scenario:
+      "A clean, original camera capture of the landscape (Sky, Mountains, Barn with Window, Single Pine Tree). No cut-paste, no clones, no erasing.",
+    detectionReason:
+      "PixelProof checked edge continuity, block similarity, and noise variance across the entire photo. Everything is completely uniform and natural.",
+    whatToLookFor:
+      "Panel 3 shows GREEN CLEAN status with ZERO bounding boxes. Result: 100% Genuine Authentic Photo!",
+  },
+};
+
 export default function ForgeryDetectorPage() {
   const [selectedPresetId, setSelectedPresetId] = useState<string>("splice_badge");
   const [report, setReport] = useState<ForensicReport | null>(null);
@@ -68,7 +139,6 @@ export default function ForgeryDetectorPage() {
     }
   };
 
-  // Determine which heatmap to display based on activeMethod
   const getActiveHeatmapSrc = () => {
     if (!report) return "";
     if (activeMethod === "boundary") {
@@ -93,58 +163,25 @@ export default function ForgeryDetectorPage() {
   const isTampered = report ? report.verdict === "TAMPERED" : false;
   const isSuspicious = report ? report.verdict === "SUSPICIOUS" : false;
 
-  const corePresets = [
-    {
-      id: "splice_badge",
-      code: "CASE 01",
-      title: "SPLICING ATTACK",
-      desc: "Pasted foreign object with mismatched edge boundary",
-      badge: "TAMPERED",
-      color: "border-[#ff2a2a] text-[#ff2a2a]",
-    },
-    {
-      id: "copymove_crate",
-      code: "CASE 02",
-      title: "COPY-MOVE CLONE",
-      desc: "Duplicated emblem within image (links source to target)",
-      badge: "TAMPERED",
-      color: "border-[#ff2a2a] text-[#ff2a2a]",
-    },
-    {
-      id: "retouch_airbrush",
-      code: "CASE 03",
-      title: "RETOUCH / BLUR",
-      desc: "Erased texture & smoothed sensor noise cavity",
-      badge: "TAMPERED",
-      color: "border-[#ff2a2a] text-[#ff2a2a]",
-    },
-    {
-      id: "authentic_camera",
-      code: "CASE 04",
-      title: "AUTHENTIC ORIGINAL",
-      desc: "Clean camera capture with uniform sensor grain",
-      badge: "AUTHENTIC",
-      color: "border-[#00e676] text-[#00e676]",
-    },
-  ];
+  const currentCase = selectedPresetId ? CASE_DETAILS[selectedPresetId] : null;
 
   return (
-    <div className="min-h-screen flex flex-col overflow-x-hidden">
+    <div className="min-h-screen flex flex-col overflow-x-hidden bg-[#080808] text-[#f2efe9]">
       <Navbar />
 
-      <main className="flex-1 max-w-[1400px] w-full mx-auto px-3 sm:px-6 lg:px-8 space-y-6">
+      <main className="flex-1 max-w-[1400px] w-full mx-auto px-3 sm:px-6 lg:px-8 space-y-6 py-4">
         {/* Top Header Banner */}
-        <section className="border-x border-b border-[#222220] bg-[#0e0e0e] p-5 sm:p-7 flex flex-col lg:flex-row lg:items-center justify-between gap-5">
+        <section className="border border-[#222220] bg-[#0e0e0e] p-5 sm:p-7 flex flex-col lg:flex-row lg:items-center justify-between gap-5">
           <div className="min-w-0">
-            <div className="font-mono text-[10px] sm:text-[11px] uppercase tracking-widest text-[#00e5ff] mb-1">
-              {"// CLASSICAL DIGITAL IMAGE PROCESSING FORENSICS"}
+            <div className="font-mono text-[10px] sm:text-[11px] uppercase tracking-widest text-[#00e5ff] mb-1 font-bold">
+              {"// DIGITAL IMAGE PROCESSING FORENSIC BENCH"}
             </div>
-            <h1 className="font-display font-black text-3xl sm:text-5xl uppercase tracking-tight text-[#f2efe9]">
+            <h1 className="font-display font-black text-2xl sm:text-4xl uppercase tracking-tight text-[#f2efe9]">
               IMAGE FORGERY &amp; TAMPERING DETECTOR
             </h1>
-            <p className="text-xs sm:text-sm text-[#88857e] mt-1 max-w-2xl">
-              Upload any image or click a test case below to detect Splicing, Copy-Move Cloning, and
-              Retouching using classical spatial and frequency filters.
+            <p className="text-xs sm:text-sm text-[#88857e] mt-1 max-w-2xl leading-relaxed">
+              Upload any image or click one of the 4 test cases below. PixelProof instantly isolates
+              fake objects, cloned duplicates, and erased areas using classical DIP filters.
             </p>
           </div>
 
@@ -165,11 +202,11 @@ export default function ForgeryDetectorPage() {
               onClick={() => fileInputRef.current?.click()}
               className="brutal-btn brutal-btn-primary"
             >
-              UPLOAD YOUR IMAGE →
+              UPLOAD YOUR OWN IMAGE →
             </button>
 
             <Link href="/sandbox" className="brutal-btn">
-              CREATE FORGERY IN SANDBOX
+              TRY LIVE SANDBOX
             </Link>
           </div>
         </section>
@@ -180,15 +217,15 @@ export default function ForgeryDetectorPage() {
           </div>
         )}
 
-        {/* 4 Instant Test Case Selector */}
+        {/* 4 Test Case Selector Buttons */}
         <section className="panel-frame">
           <div className="panel-header">
-            <span>QUICK DEMO CASES // CLICK TO TEST FORGERY TYPES</span>
-            <span className="text-[#00e5ff]">INSTANT DETECTION</span>
+            <span>STEP 1: SELECT A DEMO CASE OR UPLOAD A PHOTO</span>
+            <span className="text-[#00e5ff] font-bold">CLICK TO TEST</span>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 bg-[#0e0e0e] divide-y sm:divide-y-0 sm:divide-x divide-[#222220]">
-            {corePresets.map((p) => {
+            {Object.values(CASE_DETAILS).map((p) => {
               const isSelected = selectedPresetId === p.id;
               return (
                 <button
@@ -204,19 +241,19 @@ export default function ForgeryDetectorPage() {
                     <div className="flex items-center justify-between font-mono text-[10px] mb-1.5">
                       <span className={isSelected ? "text-[#00e5ff] font-bold" : "text-[#88857e]"}>
                         {isSelected ? "● " : ""}
-                        {p.code}
+                        {p.tag}
                       </span>
-                      <span className={`px-1.5 py-0.5 font-bold border text-[9px] ${p.color}`}>
+                      <span className={`px-1.5 py-0.5 font-bold border text-[9px] ${p.badgeColor}`}>
                         {p.badge}
                       </span>
                     </div>
-                    <div className="font-display font-bold text-lg uppercase text-[#f2efe9]">
+                    <div className="font-display font-bold text-base uppercase text-[#f2efe9]">
                       {p.title}
                     </div>
-                    <p className="mt-1 text-[11px] text-[#88857e] leading-snug">{p.desc}</p>
+                    <p className="mt-1 text-[11px] text-[#88857e] leading-snug">{p.subtitle}</p>
                   </div>
                   <div className="mt-3 text-[10px] font-mono text-[#00e5ff] font-bold">
-                    {isSelected ? "ACTIVE CASE" : "RUN TEST →"}
+                    {isSelected ? "● CURRENTLY VIEWING" : "TEST THIS CASE →"}
                   </div>
                 </button>
               );
@@ -224,12 +261,48 @@ export default function ForgeryDetectorPage() {
           </div>
         </section>
 
+        {/* Plain-English Case Explanation Banner (For Teachers/Examiners) */}
+        {currentCase && !isLoading && (
+          <section className="border border-[#00e5ff]/40 bg-[#00e5ff]/5 p-4 sm:p-5 space-y-2">
+            <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[#00e5ff]/20 pb-2">
+              <div className="font-mono text-xs font-bold text-[#00e5ff] uppercase flex items-center gap-2">
+                <span>[CASE EXPLANATION]</span>
+                <span className="text-[#f2efe9]">{currentCase.title}</span>
+              </div>
+              <span className={`px-2 py-0.5 font-mono text-[10px] font-bold border ${currentCase.badgeColor}`}>
+                EXPECTED VERDICT: {currentCase.badge}
+              </span>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs pt-1">
+              <div>
+                <strong className="text-[#ffb300] font-mono block mb-0.5 uppercase">
+                  1. What Happened In This Photo:
+                </strong>
+                <p className="text-[#88857e] leading-relaxed">{currentCase.scenario}</p>
+              </div>
+
+              <div>
+                <strong className="text-[#00e676] font-mono block mb-0.5 uppercase">
+                  2. How PixelProof Caught It:
+                </strong>
+                <p className="text-[#88857e] leading-relaxed">{currentCase.detectionReason}</p>
+              </div>
+            </div>
+
+            <div className="pt-2 border-t border-[#00e5ff]/15 font-mono text-[11px] text-[#f2efe9]">
+              <span className="text-[#00e5ff] font-bold">👀 WHAT TO LOOK AT BELOW: </span>
+              {currentCase.whatToLookFor}
+            </div>
+          </section>
+        )}
+
         {/* Loading State */}
         {isLoading && (
           <div className="panel-frame p-8 text-center font-mono text-xs text-[#00e5ff] space-y-2">
-            <div className="text-lg font-bold">ANALYZING IMAGE THROUGH DIP OPERATORS...</div>
+            <div className="text-lg font-bold">RUNNING DIP DETECTION ALGORITHMS...</div>
             <div className="text-[#88857e]">
-              Checking Edge Gradients, Copy-Move Keypoints, Noise Variance, and Morphological Mask...
+              Computing Sobel Edge Gradients, Copy-Move Feature Vectors, and Noise Variances...
             </div>
           </div>
         )}
@@ -239,10 +312,10 @@ export default function ForgeryDetectorPage() {
           <section className="space-y-5">
             {/* 3 Side-by-Side Viewport Panels */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-              {/* Box 1: Original Image */}
+              {/* Box 1: Suspect Input Image */}
               <div className="panel-frame flex flex-col">
                 <div className="panel-header">
-                  <span>PANEL 01 // ORIGINAL INPUT IMAGE</span>
+                  <span>PANEL 1 // SUSPECT INPUT PHOTO</span>
                   <span className="text-[#f2efe9]">
                     {report.image_width}&times;{report.image_height}PX
                   </span>
@@ -251,19 +324,19 @@ export default function ForgeryDetectorPage() {
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
                     src={report.original_preview_base64}
-                    alt="Original input"
-                    className="max-h-[340px] w-full object-contain"
+                    alt="Suspect Input Image"
+                    className="max-h-[320px] w-full object-contain"
                   />
                 </div>
                 <div className="border-t border-[#222220] bg-[#0b0b0b] p-2 text-center font-mono text-[10px] text-[#88857e]">
-                  RAW UNMODIFIED INPUT FRAME
+                  THE SUSPECT PHOTO GIVEN TO THE DETECTOR
                 </div>
               </div>
 
               {/* Box 2: Detection Method / Heatmap */}
               <div className="panel-frame flex flex-col">
                 <div className="panel-header">
-                  <span>PANEL 02 // DETECTION FILTER</span>
+                  <span>PANEL 2 // DIP FILTER X-RAY</span>
                   <span className="text-[#00e5ff] font-bold">{activeMethod.toUpperCase()}</span>
                 </div>
                 <div className="p-3 bg-[#050505] flex-1 flex items-center justify-center min-h-[260px]">
@@ -271,7 +344,7 @@ export default function ForgeryDetectorPage() {
                   <img
                     src={getActiveHeatmapSrc()}
                     alt="Detection Heatmap"
-                    className="max-h-[340px] w-full object-contain"
+                    className="max-h-[320px] w-full object-contain"
                   />
                 </div>
                 {/* Method Switcher Buttons */}
@@ -285,7 +358,7 @@ export default function ForgeryDetectorPage() {
                         : "text-[#88857e] hover:text-[#f2efe9]"
                     }`}
                   >
-                    FUSION
+                    ALL FILTERS
                   </button>
                   <button
                     type="button"
@@ -296,7 +369,7 @@ export default function ForgeryDetectorPage() {
                         : "text-[#88857e] hover:text-[#f2efe9]"
                     }`}
                   >
-                    BOUNDARY
+                    EDGE SEAM
                   </button>
                   <button
                     type="button"
@@ -339,7 +412,7 @@ export default function ForgeryDetectorPage() {
               {/* Box 3: Final Output with Bounding Box */}
               <div className="panel-frame flex flex-col">
                 <div className="panel-header">
-                  <span>PANEL 03 // DETECTED FORGERY MASK</span>
+                  <span>PANEL 3 // FORGERY LOCALIZATION RESULT</span>
                   <span
                     className={`px-1.5 py-0.5 border font-bold text-[9px] ${
                       isTampered
@@ -348,7 +421,7 @@ export default function ForgeryDetectorPage() {
                     }`}
                   >
                     {report.bounding_boxes.length > 0
-                      ? `${report.bounding_boxes.length} REGION(S)`
+                      ? `${report.bounding_boxes.length} TAMPERED REGION(S)`
                       : "CLEAN"}
                   </span>
                 </div>
@@ -357,12 +430,12 @@ export default function ForgeryDetectorPage() {
                   <img
                     src={report.original_preview_base64}
                     alt="Detected Result Overlay"
-                    className="max-h-[340px] w-full object-contain"
+                    className="max-h-[320px] w-full object-contain"
                   />
-                  {/* Overlay SVG with Bounding Boxes */}
+                  {/* Overlay SVG with Bounding Boxes & Copy-move lines */}
                   <svg
                     viewBox={`0 0 ${report.image_width} ${report.image_height}`}
-                    className="absolute inset-3 max-h-[340px] w-full h-full pointer-events-none"
+                    className="absolute inset-3 max-h-[320px] w-full h-full pointer-events-none"
                     preserveAspectRatio="xMidYMid meet"
                   >
                     {/* Copy-move vectors */}
@@ -374,11 +447,11 @@ export default function ForgeryDetectorPage() {
                           x2={vec.dst_x}
                           y2={vec.dst_y}
                           stroke="#00E5FF"
-                          strokeWidth="2.5"
+                          strokeWidth="3"
                           strokeDasharray="4 2"
                         />
-                        <rect x={vec.src_x - 3} y={vec.src_y - 3} width="6" height="6" fill="#00E676" />
-                        <rect x={vec.dst_x - 3} y={vec.dst_y - 3} width="6" height="6" fill="#FF2A2A" />
+                        <rect x={vec.src_x - 4} y={vec.src_y - 4} width="8" height="8" fill="#00E676" />
+                        <rect x={vec.dst_x - 4} y={vec.dst_y - 4} width="8" height="8" fill="#FF2A2A" />
                       </g>
                     ))}
                     {/* Bounding boxes */}
@@ -391,24 +464,24 @@ export default function ForgeryDetectorPage() {
                           height={box.height}
                           fill="rgba(255, 42, 42, 0.22)"
                           stroke="#FF2A2A"
-                          strokeWidth="2.5"
+                          strokeWidth="3"
                         />
                         <rect
                           x={box.x}
-                          y={Math.max(0, box.y - 18)}
-                          width={Math.min(report.image_width - box.x, 140)}
-                          height="18"
+                          y={Math.max(0, box.y - 20)}
+                          width={Math.min(report.image_width - box.x, 180)}
+                          height="20"
                           fill="#FF2A2A"
                         />
                         <text
                           x={box.x + 4}
-                          y={Math.max(12, box.y - 4)}
+                          y={Math.max(14, box.y - 5)}
                           fill="#080808"
                           fontSize="11"
                           fontFamily="monospace"
                           fontWeight="bold"
                         >
-                          {`R${box.id} // ${box.confidence.toFixed(0)}%`}
+                          {`FAKE REGION // ${box.confidence.toFixed(0)}%`}
                         </text>
                       </g>
                     ))}
@@ -417,11 +490,11 @@ export default function ForgeryDetectorPage() {
                 <div className="border-t border-[#222220] bg-[#0b0b0b] p-2 text-center font-mono text-[10px]">
                   {report.bounding_boxes.length > 0 ? (
                     <span className="text-[#ff2a2a] font-bold">
-                      RED BOUNDING BOX INDICATES DETECTED TAMPERED AREA
+                      🔴 RED BOUNDING BOX MARKS THE DETECTED FAKE REGION
                     </span>
                   ) : (
                     <span className="text-[#00e676] font-bold">
-                      NO LOCALIZED MANIPULATION DETECTED
+                      🟢 NO TAMPERING DETECTED — PHOTO IS AUTHENTIC
                     </span>
                   )}
                 </div>
@@ -432,8 +505,8 @@ export default function ForgeryDetectorPage() {
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
               {/* Verdict Summary Box */}
               <div className="lg:col-span-4 panel-frame p-5 space-y-4">
-                <div className="font-mono text-[10px] text-[#88857e] uppercase">
-                  FORENSIC VERDICT RESULT
+                <div className="font-mono text-[10px] text-[#88857e] uppercase font-bold">
+                  FINAL FORENSIC VERDICT
                 </div>
                 <div
                   className={`border p-4 text-center ${
@@ -445,7 +518,7 @@ export default function ForgeryDetectorPage() {
                   }`}
                 >
                   <div
-                    className={`font-display font-black text-4xl uppercase ${
+                    className={`font-display font-black text-3xl sm:text-4xl uppercase ${
                       isTampered
                         ? "text-[#ff2a2a]"
                         : isSuspicious
@@ -480,15 +553,15 @@ export default function ForgeryDetectorPage() {
                 </div>
               </div>
 
-              {/* Plain-English Explanation for Teacher */}
+              {/* Plain-English Explanation */}
               <div className="lg:col-span-8 panel-frame p-5 space-y-4 flex flex-col justify-between">
                 <div>
                   <div className="flex items-center justify-between border-b border-[#222220] pb-2.5 mb-3 font-mono text-xs">
                     <span className="text-[#00e5ff] font-bold">
-                      WHAT THIS MEANS (EXPLANATION FOR TEACHER / EXAMINER)
+                      SUMMARY OF DETECTION FINDINGS
                     </span>
                     <Link href="/how-it-works" className="text-[#88857e] hover:text-[#00e5ff]">
-                      HOW IT WORKS →
+                      HOW ALGORITHMS WORK →
                     </Link>
                   </div>
 
@@ -500,7 +573,7 @@ export default function ForgeryDetectorPage() {
                   {report.bounding_boxes.length > 0 && (
                     <div className="mt-4 space-y-2">
                       <div className="font-mono text-[10px] text-[#ff2a2a] uppercase font-bold">
-                        DETECTED FORGERY COORDINATES:
+                        DETECTED FORGERY DETAILS:
                       </div>
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                         {report.bounding_boxes.map((b) => (
@@ -512,7 +585,7 @@ export default function ForgeryDetectorPage() {
                               [R{b.id}] {b.primary_cause}
                             </div>
                             <div className="text-[#88857e] text-[10px] mt-0.5">
-                              Box at X:{b.x}, Y:{b.y} (Width: {b.width}px, Height: {b.height}px) · {b.area_ratio}% of frame
+                              Located at X:{b.x}, Y:{b.y} (Width: {b.width}px, Height: {b.height}px)
                             </div>
                           </div>
                         ))}
@@ -523,7 +596,7 @@ export default function ForgeryDetectorPage() {
 
                 <div className="pt-4 border-t border-[#222220] flex flex-wrap items-center justify-between gap-3 text-xs font-mono">
                   <span className="text-[#88857e]">
-                    Want to see live Copy-Move cloning or Splicing on an interactive canvas?
+                    Want to create your own forgery on canvas and see it get detected live?
                   </span>
                   <Link href="/sandbox" className="text-[#00e5ff] font-bold hover:underline">
                     OPEN LIVE TAMPER SANDBOX →
